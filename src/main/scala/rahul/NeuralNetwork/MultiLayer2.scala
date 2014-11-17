@@ -14,19 +14,33 @@ case class Input extends LayerType
 case class Output extends LayerType
 case class Hidden extends LayerType
 
-class MultiLayerNN(val layers: List[Layer], val weightMatrices: ListBuffer[DenseMatrix[Double]] = ListBuffer[DenseMatrix[Double]](), val learningRate: Double = 0.2, val momentum: Double = 0.3) {
+class MultiLayerNN(val layers: List[Layer],
+  val weightMatrices: ListBuffer[DenseMatrix[Double]] = ListBuffer[DenseMatrix[Double]](),
+  val learningRate: Double = 0.2, // Determines the fraction of weight and bias change
+  val momentum: Double = 0.3, // To prevent local minima during GD
+  val input: DenseVector[Double] = Data.SAMPLE_INPUT,
+  val output: DenseVector[Double] = Data.SAMPLE_OUTPUT,
+  val activationFunc: Double => Double = Activations.sigmoid,
+  val derivActivationFunc: Double => Double = Activations.derivSigmoid) {
   val activatedInputList = ListBuffer[DenseVector[Double]]()
+  val deltaVectorList = ListBuffer[DenseVector[Double]]()
 
-  val inpVecSize = layers.size
-  (0 until inpVecSize).map {
-    x =>
-      activatedInputList += DenseVector()
+  val layerSz = layers.size
+  
+  def initialize = {
+    //1. Initialize collection vectors
+    (0 until layerSz).map {
+      x =>
+        activatedInputList += DenseVector()
+        deltaVectorList += DenseVector()
+    }
+    //2. Initialize weight Matrix
+    initWeightMatrix
   }
 
-  def initWeightMatrix { // Initialize with a Uniform Distribution
+  private def initWeightMatrix { // Initialize with a Uniform Distribution..??
 
   }
-  val input = Data.SAMPLE_INPUT
 
   def getActivation(layernum: Int, curInputs: DenseVector[Double]): DenseVector[Double] = {
     val weightMatOfLayer = weightMatrices(layernum)
@@ -37,7 +51,7 @@ class MultiLayerNN(val layers: List[Layer], val weightMatrices: ListBuffer[Dense
         1
     val activationVect = DenseVector.zeros[Double](nextLayerNeuronCnt)
     for (i <- 0 until nextLayerNeuronCnt) {
-      activationVect(i) = sigmoid(
+      activationVect(i) = activationFunc(
         curInputs.toArray.zipWithIndex
           .map(x => weightMatOfLayer(i, x._2) * x._1)
           .reduce(_ + _) + layers(layernum).bias(i))
@@ -45,10 +59,10 @@ class MultiLayerNN(val layers: List[Layer], val weightMatrices: ListBuffer[Dense
     activationVect
   }
 
-  def computeSquaredError(target:List[Double],computedOut:List[Double]):Double = {
-    (target.zip(computedOut).map(x => pow((x._1-x._2),2)).reduce(_+_))/2
+  def computeSquaredError(target: List[Double], computedOut: List[Double]): Double = {
+    (target.zip(computedOut).map(x => pow((x._1 - x._2), 2)).reduce(_ + _)) / 2
   }
-  
+
   def calculateOutput = forward(0, input)
 
   @tailrec
@@ -63,11 +77,12 @@ class MultiLayerNN(val layers: List[Layer], val weightMatrices: ListBuffer[Dense
 
   private def findDelta(layer: Layer) = {
     //Check whether it's output layer
-    val delta = layer.layerType match {
+    val deltaVector = layer.layerType match {
       case Output() =>
-      	
+        DenseVector(activatedInputList(layer.layerIdx).toArray
+            .zipWithIndex.map{x => derivActivationFunc(x._1) * (output(x._2) - x._1)})
       case _ =>
-
+        
     }
   }
 }
@@ -84,15 +99,15 @@ object MultiLayerNN {
           val numInp = lyrDtSplit(1).toInt
           Layer(numNeurons, numInp, Input())
         } else if (x._2 == lastElemIdx) { // Last element..So Output layer
-          Layer(x._1.toInt, layerType = Output())
+          Layer(x._1.toInt, layerType = Output(), layerIdx = x._2)
         } else { // Hidden Layer
-          Layer(x._1.toInt)
+          Layer(x._1.toInt, layerIdx = x._2)
         }
     }
     new MultiLayerNN(layerList)
   }
 }
 
-case class Layer(val numNeurons: Int, val numInp: Int = -1, val layerType: LayerType = Hidden()) {
+case class Layer(val numNeurons: Int, val numInp: Int = -1, val layerType: LayerType = Hidden(), val layerIdx: Int = 0) {
   val bias = DenseVector.zeros[Double](numNeurons)
 }
