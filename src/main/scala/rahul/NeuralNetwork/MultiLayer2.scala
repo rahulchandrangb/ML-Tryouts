@@ -7,6 +7,8 @@ import scala.beans.BeanProperty
 import breeze.linalg.DenseMatrix
 import breeze.linalg.DenseVector
 import scala.annotation.tailrec
+import breeze.stats.distributions.Gaussian
+import breeze.stats.distributions.Uniform
 
 sealed trait LayerType
 
@@ -17,7 +19,7 @@ case class Hidden extends LayerType
 class MultiLayerNN(val layers: List[Layer],
   val weightMatrices: ListBuffer[DenseMatrix[Double]] = ListBuffer[DenseMatrix[Double]](),
   val learningRate: Double = 0.2, // Determines the fraction of weight and bias change
-  val momentum: Double = 0.3, // To prevent local minima during GD
+  val momentum: Double = 0.3, // To prevent local minima during GD [Introduce weight decay]
   val input: DenseVector[Double] = Data.SAMPLE_INPUT,
   val output: DenseVector[Double] = Data.SAMPLE_OUTPUT,
   val activationFunc: Double => Double = Activations.sigmoid,
@@ -27,7 +29,7 @@ class MultiLayerNN(val layers: List[Layer],
 
   val layerSz = layers.size
 
-  def initialize = {
+  def initialize(boolInitWeight: Boolean = true) {
     //1. Initialize collection vectors
     (0 until layerSz).map {
       x =>
@@ -35,11 +37,19 @@ class MultiLayerNN(val layers: List[Layer],
         deltaVectorList += DenseVector()
     }
     //2. Initialize weight Matrix
-    initWeightMatrix
+    if (boolInitWeight) initWeightMatrix
   }
 
-  private def initWeightMatrix { // Initialize with a Uniform Distribution..??
-
+  private def initWeightMatrix { // Initialize with a Uniform Dist or Normal dist..??
+    if (weightMatrices.size == 0) { //Weight Matrices not even created
+      layers.foreach(x => weightMatrices += DenseMatrix.zeros[Double](x.numNeurons, x.numInp))
+    }
+    (0 until weightMatrices.size).foreach {
+      idx =>
+        val matrix = weightMatrices(idx)
+        val u = new Uniform(0, 1)
+        weightMatrices(idx) = matrix.map(_ => u.sample)
+    }
   }
 
   def getActivation(layernum: Int, curInputs: DenseVector[Double]): DenseVector[Double] = {
