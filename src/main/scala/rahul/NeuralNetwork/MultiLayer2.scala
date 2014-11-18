@@ -18,8 +18,8 @@ case class Hidden extends LayerType
 
 class MultiLayerNN(val layers: List[Layer],
   val weightMatrices: ListBuffer[DenseMatrix[Double]] = ListBuffer[DenseMatrix[Double]](),
-  val learningRate: Double = 0.2, // Determines the fraction of weight and bias change
-  val momentum: Double = 0.3, // To prevent local minima during GD [Introduce weight decay]
+  val learningRate: Double = 0.2, // Determines the fraction of weight and bias change [beta]
+  val momentum: Double = 0.3, // To prevent local minima during GD [Introduce weight decay][alpha]
   val input: DenseVector[Double] = Data.SAMPLE_INPUT,
   val output: DenseVector[Double] = Data.SAMPLE_OUTPUT,
   val activationFunc: Double => Double = Activations.sigmoid,
@@ -70,7 +70,7 @@ class MultiLayerNN(val layers: List[Layer],
   }
 
   def computeSquaredError(target: List[Double], computedOut: List[Double]): Double = {
-    (target.zip(computedOut).map(x => pow((x._1 - x._2), 2)).reduce(_ + _)) / 2
+    (target.zip(computedOut).map(x => pow((x._1 - x._2), 2)).reduce(_ + _)) / 2 // blas densevector multiplication can also be used for memory efficient computation    
   }
 
   def calculateOutput = forward(0, input)
@@ -86,7 +86,7 @@ class MultiLayerNN(val layers: List[Layer],
   }
   def backPropagate {
     updateDeltaList() //Propagate and find the delta for all layers
-
+    
   }
 
   @tailrec
@@ -105,6 +105,35 @@ class MultiLayerNN(val layers: List[Layer],
     if (layer.layerIdx - 1 == 0) return
     else updateDeltaList(layers(layer.layerIdx - 1))
   }
+
+  /*
+   * //	apply momentum ( does nothing if alpha=0 )
+	for(i=1;i<numl;i++){
+		for(int j=0;j<lsize[i];j++){
+			for(int k=0;k<lsize[i-1];k++){
+				weight[i][j][k]+=alpha*prevDwt[i][j][k];
+			}
+			weight[i][j][lsize[i-1]]+=alpha*prevDwt[i][j][lsize[i-1]];
+		}
+	}
+**/
+
+  /*
+   * 
+	//	adjust weights usng steepest descent	
+	for(i=1;i<numl;i++){
+		for(int j=0;j<lsize[i];j++){
+			for(int k=0;k<lsize[i-1];k++){
+				prevDwt[i][j][k]=beta*delta[i][j]*out[i-1][k];
+				weight[i][j][k]+=prevDwt[i][j][k];
+			}
+			prevDwt[i][j][lsize[i-1]]=beta*delta[i][j];
+			weight[i][j][lsize[i-1]]+=prevDwt[i][j][lsize[i-1]];
+		}
+	}
+   * 
+   */
+
 }
 
 object MultiLayerNN {
