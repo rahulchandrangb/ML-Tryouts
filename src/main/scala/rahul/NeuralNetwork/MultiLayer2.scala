@@ -85,8 +85,8 @@ class MultiLayerNN(val layers: List[Layer],
     }
   }
   def backPropagate {
-    updateDeltaList() //Propagate and find the delta for all layers
-    
+    updateDeltaList() //Propagate and find the delta for all layers 
+    updatePrevWt()  // 
   }
 
   @tailrec
@@ -105,7 +105,11 @@ class MultiLayerNN(val layers: List[Layer],
     if (layer.layerIdx - 1 == 0) return
     else updateDeltaList(layers(layer.layerIdx - 1))
   }
-
+   
+  private def updatePrevWt(layer: Layer = layers.head){ //Add momentum - weight decay
+    
+  }
+   
   /*
    * //	apply momentum ( does nothing if alpha=0 )
 	for(i=1;i<numl;i++){
