@@ -74,35 +74,26 @@ class MultiLayerNN(val layers: List[Layer],
       forward(layerNum + 1, newInp)
     }
   }
+  def backPropagate {
+    updateDeltaList() //Propagate and find the delta for all layers
 
-  /*
-   * 
- for(i=numl-2;i>0;i--){
-    for(int j=0;j < lsize[i];j++){
-        sum=0.0;
-        for(int k=0;k < lsize[i+1];k++){
-                sum+=delta[i+1][k]*weight[i+1][k][j];
-        }
-        delta[i][j]=out[i][j]*(1-out[i][j])*sum;
-    }
   }
-   * 
-   */
-  private def findDelta(layer: Layer) = {
-    //Check whether it's output layer
-    val deltaVector = layer.layerType match {
+
+  @tailrec
+  private def updateDeltaList(layer: Layer = layers.last): Unit = {
+    //Check whether it's output layer  
+    val deltaVector: DenseVector[Double] = layer.layerType match {
       case Output() =>
         DenseVector(activatedInputList(layer.layerIdx).toArray
           .zipWithIndex.map { x => derivActivationFunc(x._1) * (output(x._2) - x._1) })
       case _ =>
-        // Find cartesian combination with next Layer
-        val cartesian = (for {
-          i <- 0 until layer.numNeurons
-          j <- 0 until layers(layer.layerIdx + 1).numNeurons
-        } yield (i, j)).toList
-        deltaVectorList(layer.layerIdx + 1)
-
+        val deltaAlone = (deltaVectorList(layer.layerIdx + 1).toDenseMatrix * weightMatrices(layer.layerIdx + 1)).toDenseVector
+        val derivOutput = activatedInputList(layer.layerIdx).map(derivActivationFunc)
+        deltaAlone :* derivOutput
     }
+    deltaVectorList(layer.layerIdx) = deltaVector
+    if (layer.layerIdx - 1 == 0) return
+    else updateDeltaList(layers(layer.layerIdx - 1))
   }
 }
 
