@@ -26,7 +26,7 @@ class MultiLayerNN(val layers: List[Layer],
   val deltaVectorList = ListBuffer[DenseVector[Double]]()
 
   val layerSz = layers.size
-  
+
   def initialize = {
     //1. Initialize collection vectors
     (0 until layerSz).map {
@@ -66,23 +66,42 @@ class MultiLayerNN(val layers: List[Layer],
   def calculateOutput = forward(0, input)
 
   @tailrec
-  private def forward(layernum: Int = 0, curInputs: DenseVector[Double] = input): DenseVector[Double] = {
-    if (layernum == layers.size) curInputs
+  private def forward(layerNum: Int = 0, curInputs: DenseVector[Double] = input): DenseVector[Double] = {
+    if (layerNum == layers.size) curInputs
     else {
-      val newInp = getActivation(layernum, curInputs)
-      activatedInputList(layernum) = newInp //Side effect !!!!
-      forward(layernum + 1, newInp)
+      val newInp = getActivation(layerNum, curInputs)
+      activatedInputList(layerNum) = newInp //Side effect !!!!
+      forward(layerNum + 1, newInp)
     }
   }
 
+  /*
+   * 
+ for(i=numl-2;i>0;i--){
+    for(int j=0;j < lsize[i];j++){
+        sum=0.0;
+        for(int k=0;k < lsize[i+1];k++){
+                sum+=delta[i+1][k]*weight[i+1][k][j];
+        }
+        delta[i][j]=out[i][j]*(1-out[i][j])*sum;
+    }
+  }
+   * 
+   */
   private def findDelta(layer: Layer) = {
     //Check whether it's output layer
     val deltaVector = layer.layerType match {
       case Output() =>
         DenseVector(activatedInputList(layer.layerIdx).toArray
-            .zipWithIndex.map{x => derivActivationFunc(x._1) * (output(x._2) - x._1)})
+          .zipWithIndex.map { x => derivActivationFunc(x._1) * (output(x._2) - x._1) })
       case _ =>
-        
+        // Find cartesian combination with next Layer
+        val cartesian = (for {
+          i <- 0 until layer.numNeurons
+          j <- 0 until layers(layer.layerIdx + 1).numNeurons
+        } yield (i, j)).toList
+        deltaVectorList(layer.layerIdx + 1)
+
     }
   }
 }
@@ -93,7 +112,7 @@ object MultiLayerNN {
     val lastElemIdx = inputList.size - 1
     val layerList: List[Layer] = inputList.map {
       x =>
-        if (x._2 == 0) { //First element?  get input, set LayerTYpe as Input
+        if (x._2 == 0) { //First element?  get input, set LayerType as Input
           val lyrDtSplit = x._1.split(",")
           val numNeurons = lyrDtSplit(0).toInt
           val numInp = lyrDtSplit(1).toInt
