@@ -10,13 +10,7 @@ import scala.annotation.tailrec
 import breeze.stats.distributions.Gaussian
 import breeze.stats.distributions.Uniform
 
-sealed trait LayerType
-
-case class Input extends LayerType
-case class Output extends LayerType
-case class Hidden extends LayerType
-
-class MultiLayerNN(val layers: List[Layer],
+class MultiLayerNN(val layers: List[ANNLayer],
   val weightMatrices: ListBuffer[DenseMatrix[Double]] = ListBuffer[DenseMatrix[Double]](),
   val learningRate: Double = 0.2, // Determines the fraction of weight and bias change [beta]
   val momentum: Double = 0.3, // To prevent local minima during GD [Introduce weight decay][alpha]
@@ -90,7 +84,7 @@ class MultiLayerNN(val layers: List[Layer],
   }
 
   @tailrec
-  private def updateDeltaList(layer: Layer = layers.last): Unit = {
+  private def updateDeltaList(layer: ANNLayer = layers.last): Unit = {
     //Check whether it's output layer  
     val deltaVector: DenseVector[Double] = layer.layerType match {
       case Output() =>
@@ -106,7 +100,7 @@ class MultiLayerNN(val layers: List[Layer],
     else updateDeltaList(layers(layer.layerIdx - 1))
   }
    
-  private def updatePrevWt(layer: Layer = layers.head){ //Add momentum - weight decay
+  private def updatePrevWt(layer: ANNLayer = layers.head){ //Add momentum - weight decay
     
   }
    
@@ -144,23 +138,20 @@ object MultiLayerNN {
   def loadModelFromFile(srcFile: String): MultiLayerNN = {
     val inputList: List[(String, Int)] = Source.fromFile(srcFile).getLines.zipWithIndex.toList
     val lastElemIdx = inputList.size - 1
-    val layerList: List[Layer] = inputList.map {
+    val layerList: List[ANNLayer] = inputList.map {
       x =>
         if (x._2 == 0) { //First element?  get input, set LayerType as Input
           val lyrDtSplit = x._1.split(",")
           val numNeurons = lyrDtSplit(0).toInt
           val numInp = lyrDtSplit(1).toInt
-          Layer(numNeurons, numInp, Input())
+          ANNLayer(numNeurons, numInp, Input())
         } else if (x._2 == lastElemIdx) { // Last element..So Output layer
-          Layer(x._1.toInt, layerType = Output(), layerIdx = x._2)
+          ANNLayer(x._1.toInt, layerType = Output(), layerIdx = x._2)
         } else { // Hidden Layer
-          Layer(x._1.toInt, layerIdx = x._2)
+          ANNLayer(x._1.toInt, layerIdx = x._2)
         }
     }
     new MultiLayerNN(layerList)
   }
 }
 
-case class Layer(val numNeurons: Int, val numInp: Int = -1, val layerType: LayerType = Hidden(), val layerIdx: Int = 0) {
-  val bias = DenseVector.zeros[Double](numNeurons)
-}
