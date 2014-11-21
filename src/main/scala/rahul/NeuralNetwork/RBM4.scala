@@ -37,7 +37,7 @@ class RBM(val visibleLayer: RBMLayer,
     else (weight.t * input.toDenseMatrix.t).toDenseVector
   }
 
-  def calcActivationAndSamp(destLayer: RBMLayer, input: DenseVector[Double]) = {
+  def computeSample(destLayer: RBMLayer, input: DenseVector[Double]) = {
     destLayer.layerType match {
       case Visible() =>
         val sampleVec = ListBuffer[Int]()
