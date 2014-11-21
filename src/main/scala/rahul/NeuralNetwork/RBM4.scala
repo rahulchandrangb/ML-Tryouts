@@ -30,19 +30,12 @@ class RBM(val visibleLayer: RBMLayer,
     }
   }
 
-/*  
-   private def stateActivation(input: DenseVector[Double]) = {
-    val computedWeights = computeActivationEnergy(input)
-    val activations = computedWeights.map(Activations.sigmoid)
-
-  }
-*/
-  private def computeActivationEnergy(input: DenseVector[Double], boolVtoH: Boolean = true) = {
+  private def calcActivationEnergy(input: DenseVector[Double],weight:DenseMatrix[Double] ,boolVtoH: Boolean = true) = {
     if (boolVtoH) (weight * input.toDenseMatrix.t).toDenseVector
     else (weight.t * input.toDenseMatrix.t).toDenseVector
   }
 
-  def calculateSampleMean={
+  def calcActivationAndSamp(layerType:LayerType,input:DenseVector[Int])={
     
   }
   def contrastiveDiv(
@@ -53,9 +46,7 @@ class RBM(val visibleLayer: RBMLayer,
 
     val posHidMean = DenseVector.zeros[Double](numHidden)
     val posHidSample = DenseVector.zeros[Double](numHidden)
-
-    
-    
+  
     
     val negVisMean = DenseVector.zeros[Double](numVisible)
     val negVisSample = DenseVector.zeros[Double](numVisible)
