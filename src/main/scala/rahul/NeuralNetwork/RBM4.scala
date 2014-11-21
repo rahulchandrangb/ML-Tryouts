@@ -4,6 +4,7 @@ import breeze.linalg.DenseVector
 import breeze.stats.distributions.Gaussian
 import breeze.stats.distributions.Binomial
 import breeze.stats.distributions.Uniform
+import scala.collection.mutable.ListBuffer
 
 class RBM(val visibleLayer: RBMLayer,
   val hiddenLayer: RBMLayer,
@@ -13,9 +14,10 @@ class RBM(val visibleLayer: RBMLayer,
   def this(visibleLayer: RBMLayer, hiddenLayer: RBMLayer) = {
     this(visibleLayer, hiddenLayer, DenseMatrix.zeros[Double](visibleLayer.numNeurons, hiddenLayer.numNeurons), true)
   }
-
   val numVisible = visibleLayer.numNeurons
   val numHidden = hiddenLayer.numNeurons
+  val vbias = visibleLayer.bias
+  val hbias = hiddenLayer.bias
   if (boolRandWeights) initWeights
 
   def initWeights { //Initialize with normal distribution with mean 0.0, and standard deviation 0.1
@@ -30,24 +32,46 @@ class RBM(val visibleLayer: RBMLayer,
     }
   }
 
-  private def calcActivationEnergy(input: DenseVector[Double],weight:DenseMatrix[Double] ,boolVtoH: Boolean = true) = {
+  private def calcActivationEnergy(input: DenseVector[Double], weight: DenseMatrix[Double], boolVtoH: Boolean = true) = {
     if (boolVtoH) (weight * input.toDenseMatrix.t).toDenseVector
     else (weight.t * input.toDenseMatrix.t).toDenseVector
   }
 
-  def calcActivationAndSamp(layerType:LayerType,input:DenseVector[Int])={
-    
+  def calcActivationAndSamp(destLayer: RBMLayer, input: DenseVector[Double]) = {
+    destLayer.layerType match {
+      case Visible() =>
+        val sampleVec = ListBuffer[Int]()
+        for (i <- 0 until destLayer.numNeurons) {
+          val sigmaPlusBias = (input.t * weight.t(i, ::).t) + vbias(i)
+          val activatedOut = Activations.sigmoid(sigmaPlusBias)
+          sampleVec += (new Binomial(1, activatedOut)).draw
+        }
+        DenseVector(sampleVec.map(_.toDouble).toArray)
+
+      case Hidden() =>
+        val sampleVec = ListBuffer[Int]()
+        for (i <- 0 until destLayer.numNeurons) {
+          val sigmaPlusBias = (input.t * weight(i, ::).t) + hbias(i)
+          val activatedOut = Activations.sigmoid(sigmaPlusBias)
+          sampleVec += (new Binomial(1, activatedOut)).draw
+        }
+        DenseVector(sampleVec.map(_.toDouble).toArray)
+
+      case _ =>
+        println("Error: Unknown/Unsupported layer type..!!")
+        null
+    }
   }
   def contrastiveDiv(
-    input: DenseVector[Int],
-    learningRate: Double, numIterations: Int = 2,
+    input: DenseVector[Double],
+    learningRate: Double,
+    numIterations: Int = 2,
     numHidden: Int = this.numHidden,
     numVisible: Int = this.numVisible) {
 
     val posHidMean = DenseVector.zeros[Double](numHidden)
     val posHidSample = DenseVector.zeros[Double](numHidden)
-  
-    
+
     val negVisMean = DenseVector.zeros[Double](numVisible)
     val negVisSample = DenseVector.zeros[Double](numVisible)
     val negHidMean = DenseVector.zeros[Double](numHidden)
