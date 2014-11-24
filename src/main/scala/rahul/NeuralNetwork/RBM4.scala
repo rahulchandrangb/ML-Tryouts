@@ -36,30 +36,39 @@ class RBM(val visibleLayer: RBMLayer,
     if (boolVtoH) (weight * input.toDenseMatrix.t).toDenseVector
     else (weight.t * input.toDenseMatrix.t).toDenseVector
   }
+  def gibbsSampling(sampleInp: DenseVector[Double]) = {
+    val (actVis, sampVis) = computeActivAndSample(visibleLayer, sampleInp)
+    val (actHid, sampHid) = computeActivAndSample(hiddenLayer, sampVis)
+    (sampHid, actHid, sampVis, actVis)
+  }
 
-  def computeSample(destLayer: RBMLayer, input: DenseVector[Double]) = {
+  def computeActivAndSample(destLayer: RBMLayer, input: DenseVector[Double]) = {
     destLayer.layerType match {
       case Visible() =>
         val sampleVec = ListBuffer[Int]()
+        val activationStore = DenseVector.zeros[Double](destLayer.numNeurons)
         for (i <- 0 until destLayer.numNeurons) {
           val sigmaPlusBias = (input.t * weight.t(i, ::).t) + vbias(i)
           val activatedOut = Activations.sigmoid(sigmaPlusBias)
+          activationStore(i) = activatedOut
           sampleVec += (new Binomial(1, activatedOut)).draw
         }
-        DenseVector(sampleVec.map(_.toDouble).toArray)
+        (activationStore, DenseVector(sampleVec.map(_.toDouble).toArray))
 
       case Hidden() =>
         val sampleVec = ListBuffer[Int]()
+        val activationStore = DenseVector.zeros[Double](destLayer.numNeurons)
         for (i <- 0 until destLayer.numNeurons) {
           val sigmaPlusBias = (input.t * weight(i, ::).t) + hbias(i)
           val activatedOut = Activations.sigmoid(sigmaPlusBias)
+          activationStore(i) = activatedOut
           sampleVec += (new Binomial(1, activatedOut)).draw
         }
-        DenseVector(sampleVec.map(_.toDouble).toArray)
+        (activationStore, DenseVector(sampleVec.map(_.toDouble).toArray))
 
       case _ =>
         println("Error: Unknown/Unsupported layer type..!!")
-        null
+        (null, null)
     }
   }
   def contrastiveDiv(
@@ -69,13 +78,16 @@ class RBM(val visibleLayer: RBMLayer,
     numHidden: Int = this.numHidden,
     numVisible: Int = this.numVisible) {
 
-    val posHidMean = DenseVector.zeros[Double](numHidden)
-    val posHidSample = DenseVector.zeros[Double](numHidden)
-
+    val (posHidActVec, posHidSample) = computeActivAndSample(hiddenLayer, input) // This is first positive phase
     val negVisMean = DenseVector.zeros[Double](numVisible)
     val negVisSample = DenseVector.zeros[Double](numVisible)
     val negHidMean = DenseVector.zeros[Double](numHidden)
     val negHidSample = DenseVector.zeros[Double](numHidden)
+
+    val learnedOutputs = Iterator.iterate(posHidSample, posHidActVec, DenseVector.zeros[Double](numHidden), DenseVector.zeros[Double](numHidden)) {
+      case (hidSample, hidSigmoid, visSample, visSigmoid) =>
+      	gibbsSampling(hidSample)
+    }.drop(numIterations - 1).next
 
   }
 
