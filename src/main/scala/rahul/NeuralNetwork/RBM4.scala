@@ -78,17 +78,20 @@ class RBM(val visibleLayer: RBMLayer,
     numHidden: Int = this.numHidden,
     numVisible: Int = this.numVisible) {
 
+    //Calculate the first positive phase..
     val (posHidActVec, posHidSample) = computeActivAndSample(hiddenLayer, input) // This is first positive phase
-    val negVisMean = DenseVector.zeros[Double](numVisible)
-    val negVisSample = DenseVector.zeros[Double](numVisible)
-    val negHidMean = DenseVector.zeros[Double](numHidden)
-    val negHidSample = DenseVector.zeros[Double](numHidden)
 
-    val learnedOutputs = Iterator.iterate(posHidSample, posHidActVec, DenseVector.zeros[Double](numHidden), DenseVector.zeros[Double](numHidden)) {
+    //Gibb's sampling for numIterations..
+    val (hiddenSample,hiddenSigmoid,visibleSample,visibleSigmoid) = Iterator.iterate(posHidSample, posHidActVec, DenseVector.zeros[Double](numHidden), DenseVector.zeros[Double](numHidden)) {
       case (hidSample, hidSigmoid, visSample, visSigmoid) =>
       	gibbsSampling(hidSample)
     }.drop(numIterations - 1).next
 
+    //Adjust weights
+    
+    //Adjust hidden bias
+    
+    //Adjust visible bias
   }
 
 }
