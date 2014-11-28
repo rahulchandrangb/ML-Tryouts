@@ -24,3 +24,5 @@ case class RBMLayer(val numNeurons: Int, val layerType: LayerType, val bias: Den
     bias(idx) = value
   }
 }
+
+case class RecursiveNNLayer() extends Layer
