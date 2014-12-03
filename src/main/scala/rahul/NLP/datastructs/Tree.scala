@@ -2,6 +2,7 @@ package rahul.NLP.datastructs
 import breeze.linalg.{ DenseMatrix, DenseVector }
 import breeze.stats.distributions.Uniform
 import scala.collection.mutable.ListBuffer
+import scala.annotation.tailrec
 import rahul.NLP.NeuralNet
 
 /*
@@ -26,34 +27,41 @@ class Tree(
   val leftChild: Tree,
   val rightChild: Tree,
   val value: DenseVector[Double],
-  val hasSibling: Boolean = true) {
+  val label:String=null) {
 
   private var parent: Tree = null;
 
   val leafNodes = ListBuffer[(String, DenseVector[Double])]()
-  
+
   /*
    * Checks whether the tree is a leaf node or not
    */
-  def isLeaf = ((leftChild==null) && (rightChild==null))
-  
+
+  def isLeaf = ((leftChild == null) && (rightChild == null))
+
   /*
    * Calculate the number of child trees
    */
+
   def numChildren = {
-	  if(isLeaf) 0
-	  else if(leftChild==null) 1
-	  else 2
+    if (isLeaf) 0
+    else if (leftChild == null) 1 // Error .. shudn't have reached here..!!
+    else 2
   }
-  def insertWordVec(wvec: (String, DenseVector[Double])) {
-    if (isLeaf) leafNodes += wvec
-    else println("Error:Trying to insert leaf on an intermediate node.!!!")
+  
+  def getChildTokens(tree:Tree,labelList:List[String]=List()):List[String]={
+    if(tree.isLeaf) labelList :+ tree.label
+    else{
+      val leftTokenList = getChildTokens(tree.leftChild,labelList)
+      val rightTokenList = getChildTokens(tree.rightChild,labelList)
+      leftTokenList ++  rightTokenList
+    }
   }
   
   private[NLP] def setParent(parentTree: Tree) {
     parent = parentTree
   }
-  
+
   /*
    * Used to insert the parent node for two nodes.
    */
@@ -63,5 +71,5 @@ class Tree(
     rightChild.setParent(parTree)
     parTree
   }
-  
+
 }
