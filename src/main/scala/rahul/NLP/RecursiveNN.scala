@@ -4,7 +4,7 @@ import scala.annotation.tailrec
 import breeze.linalg.{DenseMatrix,DenseVector}
 
 
-class RecursiveNN(
+class RecursiveNNDemo(
   word2vec: Map[String, List[Double]],
   leanringRate: Double,
   windowSize: Int) {
