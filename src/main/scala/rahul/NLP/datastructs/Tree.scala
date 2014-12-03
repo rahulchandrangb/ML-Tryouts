@@ -54,7 +54,10 @@ class Tree(
     parent = parentTree
   }
   
-  def insertParentNode(leftChild: Tree, rightChild: Tree, value: DenseVector[Double]): Tree = {
+  /*
+   * Used to insert the parent node for two nodes.
+   */
+  private[NLP] def insertParentNode(leftChild: Tree, rightChild: Tree, value: DenseVector[Double]): Tree = {
     val parTree = new Tree(leftChild, rightChild, value)
     leftChild.setParent(parTree)
     rightChild.setParent(parTree)
