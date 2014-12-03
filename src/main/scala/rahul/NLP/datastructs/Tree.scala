@@ -30,7 +30,13 @@ class Tree(
 
   private var parent: Tree = null; // For now we'll make it mutable, later replace it with persistent tree
   private var score: Double = -200.0
-
+  
+  val name: String =
+    if (label == null)
+      "(" + leftChild.name + ")::(" + rightChild.name + ")"
+    else
+      label
+      
   val leafNodes = ListBuffer[(String, DenseVector[Double])]()
 
   /*
