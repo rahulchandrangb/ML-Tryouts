@@ -3,7 +3,6 @@ import breeze.linalg.{ DenseMatrix, DenseVector }
 import breeze.stats.distributions.Uniform
 import scala.collection.mutable.ListBuffer
 import scala.annotation.tailrec
-import rahul.NLP.NeuralNet
 
 /*
  * Description:
@@ -27,9 +26,10 @@ class Tree(
   val leftChild: Tree,
   val rightChild: Tree,
   val value: DenseVector[Double],
-  val label:String=null) {
+  val label: String = null) {
 
-  private var parent: Tree = null;
+  private var parent: Tree = null; // For now we'll make it mutable, later replace it with persistent tree
+  private var score: Double = -200.0
 
   val leafNodes = ListBuffer[(String, DenseVector[Double])]()
 
@@ -43,21 +43,33 @@ class Tree(
    * Calculate the number of child trees
    */
 
+  def setNewValue(value: DenseVector[Double]) = {
+    require(value.size == this.value.size, "Size mismatch between existing value vector and new vector!")
+    0 until value.size map {
+      v =>
+        this.value(v) = value(v)
+    }
+  }
+  def setScore(scoreval: Double) {
+    score = scoreval
+  }
   def numChildren = {
     if (isLeaf) 0
     else if (leftChild == null) 1 // Error .. shudn't have reached here..!!
     else 2
   }
-  
-  def getChildTokens(tree:Tree,labelList:List[String]=List()):List[String]={
-    if(tree.isLeaf) labelList :+ tree.label
-    else{
-      val leftTokenList = getChildTokens(tree.leftChild,labelList)
-      val rightTokenList = getChildTokens(tree.rightChild,labelList)
-      leftTokenList ++  rightTokenList
+
+  def getVectorSize = value.size
+
+  def getChildTokens(tree: Tree, labelList: List[String] = List()): List[String] = {
+    if (tree.isLeaf) labelList :+ tree.label
+    else {
+      val leftTokenList = getChildTokens(tree.leftChild, labelList)
+      val rightTokenList = getChildTokens(tree.rightChild, labelList)
+      leftTokenList ++ rightTokenList
     }
   }
-  
+
   private[NLP] def setParent(parentTree: Tree) {
     parent = parentTree
   }
@@ -71,5 +83,7 @@ class Tree(
     rightChild.setParent(parTree)
     parTree
   }
+}
+object Tree {
 
 }
