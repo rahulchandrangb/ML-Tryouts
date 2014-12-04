@@ -39,6 +39,7 @@ class Tree(
       
   val leafNodes = ListBuffer[(String, DenseVector[Double])]()
 
+  
   /*
    * Checks whether the tree is a leaf node or not
    */
@@ -89,6 +90,8 @@ class Tree(
     rightChild.setParent(parTree)
     parTree
   }
+  //override def toString ="==========================\nname:"+name+"\nscore:"+score+"\nvalue:\n--------\n"+value.toString+"\n========================\n"
+  override def toString ="name:"+name+", score:"+score
 }
 object Tree {
 

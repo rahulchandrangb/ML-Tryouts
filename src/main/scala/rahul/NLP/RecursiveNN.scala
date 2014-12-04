@@ -4,6 +4,7 @@ import scala.annotation.tailrec
 import breeze.linalg.{ DenseMatrix, DenseVector }
 import rahul.NLP.datastructs.Tree
 import breeze.stats.distributions.Gaussian
+import scala.collection.immutable.ListMap
 
 class RecursiveNNDemo(
   word2vec: Map[String, List[Double]],
@@ -44,8 +45,8 @@ class RecursiveNNDemo(
 object Test extends App {
   val inpWord = List("cat", "sat", "on", "a", "mat")
   val inpVec = List(List(1.0, 2.0), List(9.0, 6), List(1.0, 3.0), List(3.0, 6.0), List(5.0, 4.0))
-  val inpMap = inpWord.zip(inpVec).toMap
-  println("Input map:\n===================\n" + inpMap.mkString("|"))
+  val inpMap:ListMap = inpWord.zip(inpVec).toMap
+  println("Input map:\n===================\n" + inpMap.mkString("\n"))
   println("=================================")
   val rnnInst = new RecursiveNNDemo(inpMap, 0.1, 5)
   println("Trying to create first level parent output...")
@@ -55,6 +56,12 @@ object Test extends App {
   println("-------------------------------")
 
   val treeList: List[Tree] = inpMap.map( x => new Tree(null, null, new DenseVector(x._2.toArray), x._1)).toList
+  val treeList2: List[Tree] = treeList.tail :+ null
   
+  val parentList = treeList.zip(treeList2).init.map{
+    case(lt:Tree,rt:Tree) =>
+      rnnInst.createParent(lt, rt)
+  }
+  println(parentList.mkString("\n\n\n"))
 }
 
