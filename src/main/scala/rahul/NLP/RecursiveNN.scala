@@ -4,13 +4,13 @@ import scala.annotation.tailrec
 import breeze.linalg.{ DenseMatrix, DenseVector }
 import rahul.NLP.datastructs.Tree
 import breeze.stats.distributions.Gaussian
-import scala.collection.immutable.ListMap
 
 class RecursiveNNDemo(
-  word2vec: Map[String, List[Double]],
+  wVec: List[(String, List[Double])],
   leanringRate: Double,
   windowSize: Int) {
 
+  val word2vec = wVec.toMap
   val vectorSize = word2vec.head._2.size
   //val scoreUMatrix = DenseMatrix.rand(rows, cols, rand)
   val gauRng = new Gaussian(0, 0.1)
@@ -28,15 +28,18 @@ class RecursiveNNDemo(
   }
   def train(data: Iterator[String]) = { //data is the corpus with each word as element of Iterator
     val blockVectorData = convertToWindowBlocks(data).map {
-      dt =>
-        (dt.map(word2vec.getOrElse(_, null)))
+      blk =>
+        (blk.map(word2vec.getOrElse(_, null)))
     }
   }
 
   def createParent(leftTree: Tree, rightTree: Tree): Tree = { //Note the use of [U.transpose] <- Score calc matrix/function
     val parentVec = initNN.calculateParentVec(leftTree.value, rightTree.value)
     val score = Umatrix.t * parentVec
+    
     val parentTree = new Tree(leftTree, rightTree, parentVec)
+    leftTree.setParent(parentTree)
+    rightTree.setParent(parentTree)
     parentTree.setScore(score)
     parentTree
   }
@@ -45,7 +48,7 @@ class RecursiveNNDemo(
 object Test extends App {
   val inpWord = List("cat", "sat", "on", "a", "mat")
   val inpVec = List(List(1.0, 2.0), List(9.0, 6), List(1.0, 3.0), List(3.0, 6.0), List(5.0, 4.0))
-  val inpMap:ListMap = inpWord.zip(inpVec).toMap
+  val inpMap = inpWord.zip(inpVec)
   println("Input map:\n===================\n" + inpMap.mkString("\n"))
   println("=================================")
   val rnnInst = new RecursiveNNDemo(inpMap, 0.1, 5)
@@ -58,10 +61,12 @@ object Test extends App {
   val treeList: List[Tree] = inpMap.map( x => new Tree(null, null, new DenseVector(x._2.toArray), x._1)).toList
   val treeList2: List[Tree] = treeList.tail :+ null
   
-  val parentList = treeList.zip(treeList2).init.map{
+  val parentList = treeList.zip(treeList2).init.map {
     case(lt:Tree,rt:Tree) =>
       rnnInst.createParent(lt, rt)
   }
   println(parentList.mkString("\n\n\n"))
+  //parentList.foreach(_.toDot())
+  Tree.toDot("/tmp/outdot.ps","name",parentList)
 }
 
