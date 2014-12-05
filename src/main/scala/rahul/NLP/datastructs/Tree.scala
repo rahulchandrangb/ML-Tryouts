@@ -46,22 +46,20 @@ class Tree(
 
   /*
    * Checks whether the tree is a leaf node or not
+   * 
    */
 
-  
   def isLeaf = ((leftChild == null) && (rightChild == null))
 
-  
-  def getParent ={
-     if(isLeaf) {
-       if(parCurIdx>=parents.size) parCurIdx = 0
-       val tr = parents(parCurIdx)
-       parCurIdx += 1
-       tr
-     }
-     else{
-       parent
-     }
+  def getParent = {
+    if (isLeaf) {
+      if (parCurIdx >= parents.size) parCurIdx = 0
+      val tr = parents(parCurIdx)
+      parCurIdx += 1
+      tr
+    } else {
+      parent
+    }
   }
   /*
    * Calculate the number of child trees
@@ -105,7 +103,7 @@ class Tree(
 
   private[NLP] def setParent(parentTree: Tree) {
     parent = parentTree
-    if(isLeaf) parents += parentTree
+    if (isLeaf) parents += parentTree
   }
 
   /*
@@ -178,10 +176,9 @@ object Tree {
                 case _ =>
                   val (dispKey: String, dispValue: String) = nodeType match {
                     case "name" =>
-                      println(x.name)
                       (x.name, x.getParent.name)
                     case "score" =>
-                      (x.name + " :::score:" + x.score, x.parent.name + " :::score:" + x.score)
+                      (x.name + " :::score:" + x.score, x.getParent.name + " :::score:" + x.getParent.score)
                     case "vector" =>
                       (x.name, x.getParent.name)
                   }
@@ -192,10 +189,13 @@ object Tree {
           }
 
           leafs.clear
-          leafs ++= (newLeaves.filter(_ !=null))
+          leafs ++= (newLeaves.filter(_ != null))
         }
     }
     writer.println("}")
     writer.close
+    val dotCmd = s"dot -Tps $fileLoc -o $psLoc"
+    dotCmd.!!
+    println(s"Generated ps file: $psLoc")
   }
 }

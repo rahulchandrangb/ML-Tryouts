@@ -13,10 +13,17 @@ object Activations {
   def tanH(x:Double)={
     (exp(x)-exp(-x))/(exp(x)+exp(-x))
   }
+  
+  
 }
 
 // 2. Strategy
+// 2.1 Training strategy
+trait TrainStrategy
+case class TrainByEpoch(val numEpoch:Int) extends TrainStrategy
+case class TrainByError(val errorThresholds:Double) extends TrainStrategy
 
-trait Strategy
-case class TrainByEpoch(val numEpoch:Int) extends Strategy
-case class TrainByError(val errorThresholds:Double) extends Strategy
+// RNN parent selection strategy.
+trait PSelectStrategy
+case class GreedySelect() extends PSelectStrategy
+case class BruteforceBest() extends  PSelectStrategy
