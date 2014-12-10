@@ -38,8 +38,8 @@ class RecursiveNNDemo(
   }
 
   def createParent(leftTree: Tree, rightTree: Tree): Tree = {
-    val parentVec = initNN.calculateParentVec(leftTree.value, rightTree.value)
-    val score = Umatrix.t * parentVec
+    val parentVec = initNN.calculateParentVec(leftTree.value, rightTree.value) //This part replace with ANN forward method
+    val score = Umatrix.t * parentVec //This part replace with ANN forward method
 
     val parentTree = new Tree(leftTree, rightTree, parentVec)
     leftTree.setParent(parentTree)
@@ -47,6 +47,27 @@ class RecursiveNNDemo(
     parentTree.setScore(score)
     parentTree
   }
+  def constructRootNode(leafList: List[Tree]): Tree = {
+    createBestScoreTree(leafList)(0)
+  }
+  @tailrec
+  private def createBestScoreTree(inp: List[Tree]): List[Tree] = {
+    if (inp.length == 1) inp
+    val parentList = inp.zip(inp.tail).map {
+      case (lt: Tree, rt: Tree) =>
+        createParent(lt, rt)
+    }
+    val maxTree = parentList.reduce((a, b) => if (b.getScore > a.getScore) b else a)
+    val outTrees = inp.map {
+      node =>
+        if (node == maxTree.leftChild) {
+          maxTree
+        } else if (node == maxTree.rightChild) null
+        else node
+    }.filter(_ != null)
+    createBestScoreTree(outTrees)
+  }
+
 }
 object Test extends App {
   val inpWord = List("cat", "sat", "on", "a", "mat")
@@ -70,5 +91,6 @@ object Test extends App {
   }
   println(parentList.mkString("\n"))
   Tree.toDot("/tmp/outdot.ps", "name", parentList)
+
 }
 

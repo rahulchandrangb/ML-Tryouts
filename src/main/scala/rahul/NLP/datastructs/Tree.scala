@@ -81,6 +81,7 @@ class Tree(
     else 2
   }
 
+  def getScore=score
   def getVectorSize = value.size
 
   def getChildTokens(tree: Tree, labelList: List[String] = List()): List[String] = {
