@@ -31,10 +31,7 @@ class RecursiveNNDemo(
   }
 
   def train(data: Iterator[String]) = { //data is the corpus with each word as element of Iterator
-    val blockVectorData = convertToWindowBlocks(data).map {
-      blk =>
-        (blk.map(word2vec.getOrElse(_, null)))
-    }
+    convertToWindowBlocks(data).map(_.map(word2vec.getOrElse(_, null)))
   }
 
   def createParent(leftTree: Tree, rightTree: Tree): Tree = {
