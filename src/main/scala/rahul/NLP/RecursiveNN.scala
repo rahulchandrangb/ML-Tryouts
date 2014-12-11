@@ -6,6 +6,7 @@ import rahul.NLP.datastructs.Tree
 import breeze.stats.distributions.Gaussian
 import rahul.NeuralNetwork.PSelectStrategy
 import rahul.NeuralNetwork.GreedySelect
+import breeze.linalg.softmax
 
 class RecursiveNNDemo(
   val wVec: List[(String, List[Double])], // reference word to vec 
@@ -22,18 +23,32 @@ class RecursiveNNDemo(
 
   val initNN = new NeuralNetForVector(new DenseMatrix(1, 2, sampleWeightMat.toArray), DenseVector(1.0))
 
-  @tailrec
-  private def convertToWindowBlocks(data: Iterator[String], windowSlide: Iterator[List[String]] = Iterator()): Iterator[List[String]] = {
-    if (data.hasNext) {
-      val window = data.take(windowSize).toList
-      convertToWindowBlocks(data, windowSlide ++ Iterator(window))
-    } else windowSlide
+  /*
+   * Softmax function to calculate label probabilities 
+   * output: each row will represent one class of label - Li
+   */
+
+  def calculateClassLabels(parentMatList: DenseMatrix[Double], wLabel: DenseMatrix[Double]): DenseMatrix[Double]={
+    val lblVectArr = (0 until parentMatList.rows).map {
+      parIndex =>
+        val parentVecList = parentMatList(parIndex, ::)
+        val featureWeightedLblProb = wLabel * parentVecList
+        val lblProbs = (0 until featureWeightedLblProb.rows).map {
+          rowIdx =>
+            softmax(featureWeightedLblProb(rowIdx, ::).t.toArray)
+        }.toArray
+        lblProbs
+    }.toArray
+    val colSize = lblVectArr(0).size
+    val rowsize =  lblVectArr.size
+    new DenseMatrix(rowsize,colSize,lblVectArr.flatten)
   }
 
-  def train(data: Iterator[String]) = { //data is the corpus with each word as element of Iterator
-    convertToWindowBlocks(data).map(_.map(word2vec.getOrElse(_, null)))
-  }
-
+  /*
+   * 
+   * Move the createParent method later to tree
+   * 
+   */
   def createParent(leftTree: Tree, rightTree: Tree): Tree = {
     val parentVec = initNN.calculateParentVec(leftTree.value, rightTree.value) //This part replace with ANN forward method
     val score = Umatrix.t * parentVec //This part replace with ANN forward method
@@ -44,6 +59,7 @@ class RecursiveNNDemo(
     parentTree.setScore(score)
     parentTree
   }
+
   def constructRootNode(leafList: List[Tree]): Tree = {
     createBestScoreTree(leafList)(0)
   }
