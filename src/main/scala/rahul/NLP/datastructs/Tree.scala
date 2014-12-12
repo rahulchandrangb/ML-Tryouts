@@ -153,11 +153,12 @@ class Tree(
 
 }
 object Tree {
-  def insertParentNode(leftChild: Tree, rightChild: Tree, value: DenseVector[Double]): Tree = {
-    val parTree = new Tree(leftChild, rightChild, value)
-    leftChild.setParent(parTree)
-    rightChild.setParent(parTree)
-    parTree
+   def createParent(leftTree: Tree, rightTree: Tree,parentVec:DenseVector[Double],score:Double): Tree = {
+    val parentTree = new Tree(leftTree, rightTree, parentVec)
+    leftTree.setParent(parentTree)
+    rightTree.setParent(parentTree)
+    parentTree.setScore(score)
+    parentTree
   }
   def toDot(psLoc: String = "/tmp/outdot.ps", nodeType: String = "name", treeList: List[Tree]) {
     val fileLoc = if (psLoc endsWith ".ps") psLoc.substring(0, psLoc.length - 2) + "dot" else psLoc + ".dot"

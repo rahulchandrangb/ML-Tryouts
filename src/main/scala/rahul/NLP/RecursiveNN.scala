@@ -28,7 +28,7 @@ class RecursiveNNDemo(
    * output: each row will represent one class of label - Li
    */
 
-  def calculateClassLabels(parentMatList: DenseMatrix[Double], wLabel: DenseMatrix[Double]): DenseMatrix[Double]={
+  def calculateClassLabels(parentMatList: DenseMatrix[Double], wLabel: DenseMatrix[Double]): DenseMatrix[Double] = {
     val lblVectArr = (0 until parentMatList.rows).map {
       parIndex =>
         val parentVecList = parentMatList(parIndex, ::)
@@ -40,8 +40,8 @@ class RecursiveNNDemo(
         lblProbs
     }.toArray
     val colSize = lblVectArr(0).size
-    val rowsize =  lblVectArr.size
-    new DenseMatrix(rowsize,colSize,lblVectArr.flatten)
+    val rowsize = lblVectArr.size
+    new DenseMatrix(rowsize, colSize, lblVectArr.flatten)
   }
 
   /*
@@ -52,12 +52,7 @@ class RecursiveNNDemo(
   def createParent(leftTree: Tree, rightTree: Tree): Tree = {
     val parentVec = initNN.calculateParentVec(leftTree.value, rightTree.value) //This part replace with ANN forward method
     val score = Umatrix.t * parentVec //This part replace with ANN forward method
-
-    val parentTree = new Tree(leftTree, rightTree, parentVec)
-    leftTree.setParent(parentTree)
-    rightTree.setParent(parentTree)
-    parentTree.setScore(score)
-    parentTree
+    Tree.createParent(leftTree, rightTree, parentVec, score)
   }
 
   def constructRootNode(leafList: List[Tree]): Tree = {
