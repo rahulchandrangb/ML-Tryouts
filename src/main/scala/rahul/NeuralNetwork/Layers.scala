@@ -16,6 +16,7 @@ case class ANNLayer(val numNeurons: Int, val numInp: Int = -1, val layerType: La
   def setBiasVal(idx: Int, value: Double) = {
     bias(idx) = value
   }
+  
 }
 
 case class RBMLayer(val numNeurons: Int, val layerType: LayerType, val bias: DenseVector[Double]) extends Layer {

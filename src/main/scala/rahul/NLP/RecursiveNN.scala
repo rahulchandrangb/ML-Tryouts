@@ -7,6 +7,7 @@ import breeze.stats.distributions.Gaussian
 import rahul.NeuralNetwork.PSelectStrategy
 import rahul.NeuralNetwork.GreedySelect
 import breeze.linalg.softmax
+import rahul.NeuralNetwork.MultiLayerNN
 
 class RecursiveNNDemo(
   val wVec: List[(String, List[Double])], // reference word to vec 
@@ -44,6 +45,10 @@ class RecursiveNNDemo(
     new DenseMatrix(rowsize, colSize, lblVectArr.flatten)
   }
 
+  def backPropagate(root:Tree,n:MultiLayerNN)={
+    
+  }
+  
   /*
    * 
    * Move the createParent method later to tree

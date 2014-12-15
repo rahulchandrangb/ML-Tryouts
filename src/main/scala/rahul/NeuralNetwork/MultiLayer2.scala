@@ -34,6 +34,20 @@ class MultiLayerNN(val layers: List[ANNLayer],
     if (boolInitWeight) initWeightMatrix
   }
 
+  
+  def train(strategy:TrainStrategy= TrainByEpoch(Data.DEFAULT_TRAIN_EPOCHS)){
+    strategy match {
+      case TrainByEpoch(numEpoch) =>
+        (0 until numEpoch).foreach{
+          loop =>
+            println(s"Epoch: $loop")
+            
+        }
+      case TrainByError(numErr) =>   
+        
+    }
+  }
+  
   private def initWeightMatrix { // Initialize with a Uniform Dist or Normal dist..??
     if (weightMatrices.size == 0) { //Weight Matrices not even created
       layers.foreach(x => weightMatrices += DenseMatrix.zeros[Double](x.numNeurons, x.numInp))
@@ -80,7 +94,8 @@ class MultiLayerNN(val layers: List[ANNLayer],
   }
   def backPropagate {
     updateDeltaList() //Propagate and find the delta for all layers 
-    updatePrevWt()  // 
+    updateWt()  //Adjust the weight matrices
+    updateBias //Adjust the bias
   }
 
   @tailrec
@@ -99,39 +114,30 @@ class MultiLayerNN(val layers: List[ANNLayer],
     if (layer.layerIdx - 1 == 0) return
     else updateDeltaList(layers(layer.layerIdx - 1))
   }
-   
-  private def updatePrevWt(layer: ANNLayer = layers.head){ //Add momentum - weight decay
-    
+  
+  
+  @tailrec
+  private def updateWt(layer: ANNLayer = layers.last) {
+    val weightMat  =     weightMatrices(layer.layerIdx) 
+    val newWeightArr = (for{
+      i <- 0 until weightMat.rows
+      j <- 0 until weightMat.cols
+    } yield( weightMat(i,j) + (deltaVectorList(layer.layerIdx)(j)*learningRate * activatedInputList(layer.layerIdx-1)(j)))).toArray
+    weightMatrices(layer.layerIdx) =  new DenseMatrix(weightMat.rows,weightMat.cols,newWeightArr)
+    if(layer.layerIdx==0) return
+    else updateWt(layers(layer.layerIdx-1))
   }
-   
-  /*
-   * //	apply momentum ( does nothing if alpha=0 )
-	for(i=1;i<numl;i++){
-		for(int j=0;j<lsize[i];j++){
-			for(int k=0;k<lsize[i-1];k++){
-				weight[i][j][k]+=alpha*prevDwt[i][j][k];
-			}
-			weight[i][j][lsize[i-1]]+=alpha*prevDwt[i][j][lsize[i-1]];
-		}
-	}
-**/
-
-  /*
-   * 
-	//	adjust weights usng steepest descent	
-	for(i=1;i<numl;i++){
-		for(int j=0;j<lsize[i];j++){
-			for(int k=0;k<lsize[i-1];k++){
-				prevDwt[i][j][k]=beta*delta[i][j]*out[i-1][k];
-				weight[i][j][k]+=prevDwt[i][j][k];
-			}
-			prevDwt[i][j][lsize[i-1]]=beta*delta[i][j];
-			weight[i][j][lsize[i-1]]+=prevDwt[i][j][lsize[i-1]];
-		}
-	}
-   * 
-   */
-
+  
+  
+  private def updateBias {
+    (0 until layers.size).map{
+      idx =>
+        deltaVectorList(idx).toArray.zipWithIndex.map{
+          del =>
+            layers(idx).setBiasVal(del._2,del._1)
+        }
+    }
+  }
 }
 
 object MultiLayerNN {
