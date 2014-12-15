@@ -14,13 +14,20 @@ class MultiLayerNN(val layers: List[ANNLayer],
   val weightMatrices: ListBuffer[DenseMatrix[Double]] = ListBuffer[DenseMatrix[Double]](),
   val learningRate: Double = 0.2, // Determines the fraction of weight and bias change [beta]
   val momentum: Double = 0.3, // To prevent local minima during GD [Introduce weight decay][alpha]
-  val input: DenseVector[Double] = Data.SAMPLE_INPUT,
-  val output: DenseVector[Double] = Data.SAMPLE_OUTPUT,
   val activationFunc: Double => Double = Activations.sigmoid,
-  val derivActivationFunc: Double => Double = Activations.derivSigmoid) {
+  val derivActivationFunc: Double => Double = Activations.derivSigmoid) extends Network {
   val activatedInputList = ListBuffer[DenseVector[Double]]()
   val deltaVectorList = ListBuffer[DenseVector[Double]]()
 
+  private var input:DenseVector[Double] = null
+  private var output:DenseVector[Double] = null
+  
+  def setInpOutp(inp:DenseVector[Double],out:DenseVector[Double])={
+    input = inp
+    output = out
+  }
+  
+  
   val layerSz = layers.size
 
   def initialize(boolInitWeight: Boolean = true) {

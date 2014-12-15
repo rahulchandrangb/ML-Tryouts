@@ -8,12 +8,14 @@ import rahul.NeuralNetwork.PSelectStrategy
 import rahul.NeuralNetwork.GreedySelect
 import breeze.linalg.softmax
 import rahul.NeuralNetwork.MultiLayerNN
+import rahul.NeuralNetwork.Network
 
 class RecursiveNNDemo(
   val wVec: List[(String, List[Double])], // reference word to vec 
-  val leanringRate: Double, //specifies the learning rate
+  val learningRate: Double, //specifies the learning rate
   val windowSize: Int, //specifies the window size.
-  val parentSelStrategy: PSelectStrategy = GreedySelect()) {
+  val parentSelStrategy: PSelectStrategy = GreedySelect(),
+  val neuralNet:Network) {
 
   val word2vec = wVec.toMap
   val vectorSize = word2vec.head._2.size
