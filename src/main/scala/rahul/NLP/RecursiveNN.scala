@@ -47,8 +47,17 @@ class RecursiveNNDemo(
     new DenseMatrix(rowsize, colSize, lblVectArr.flatten)
   }
 
-  def backPropagate(root:Tree,n:MultiLayerNN)={
-    
+  /*
+   * Back propagate through structure
+   * @param root Root Node of the constructed tree
+   * @param nn Neural Net for RNN
+   * @param truthTreeLookUp Map that contains tree node and it's corresponding labels
+   * 
+   */
+  def backPropagate(root:Tree,nn:MultiLayerNN,truthTreeLookUp:Map[Tree,String])={  
+    // 1. Backpropagate softmax error(label error)
+    // 2. Add error to RNN error
+    // 3. Backpropagate through structure
   }
   
   /*
@@ -90,6 +99,7 @@ object Test extends App {
   val inpMap = inpWord.zip(inpVec)
   println("Input map:\n===================\n" + inpMap.mkString("\n"))
   println("=================================")
+  val initNN =  new MultiLayerNN()
   val rnnInst = new RecursiveNNDemo(inpMap, 0.1, 5)
   println("Trying to create first level parent output...")
   println("Umatrix:\n" + rnnInst.Umatrix.toString)

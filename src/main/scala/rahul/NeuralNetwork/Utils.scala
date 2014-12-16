@@ -14,6 +14,10 @@ object Activations {
     (exp(x)-exp(-x))/(exp(x)+exp(-x))
   }
   
+  def softmax()={
+    
+  }
+  
   
 }
 
