@@ -99,8 +99,8 @@ object Test extends App {
   val inpMap = inpWord.zip(inpVec)
   println("Input map:\n===================\n" + inpMap.mkString("\n"))
   println("=================================")
-  val initNN =  new MultiLayerNN()
-  val rnnInst = new RecursiveNNDemo(inpMap, 0.1, 5)
+  val initNN =  MultiLayerNN.loadModelFromFile("path to model")
+  val rnnInst = new RecursiveNNDemo(inpMap, 0.1, 5,neuralNet = initNN)
   println("Trying to create first level parent output...")
   println("Umatrix:\n" + rnnInst.Umatrix.toString)
   println("\n\n")
@@ -117,5 +117,10 @@ object Test extends App {
   println(parentList.mkString("\n"))
   Tree.toDot("/tmp/outdot.ps", "name", parentList)
 
+  
+  
+  
+  
+  
 }
 

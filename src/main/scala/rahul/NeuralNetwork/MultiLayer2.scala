@@ -19,15 +19,14 @@ class MultiLayerNN(val layers: List[ANNLayer],
   val activatedInputList = ListBuffer[DenseVector[Double]]()
   val deltaVectorList = ListBuffer[DenseVector[Double]]()
 
-  private var input:DenseVector[Double] = null
-  private var output:DenseVector[Double] = null
-  
-  def setInpOutp(inp:DenseVector[Double],out:DenseVector[Double])={
+  private var input: DenseVector[Double] = null
+  private var output: DenseVector[Double] = null
+
+  def setInpOutp(inp: DenseVector[Double], out: DenseVector[Double]) = {
     input = inp
     output = out
   }
-  
-  
+
   val layerSz = layers.size
 
   def initialize(boolInitWeight: Boolean = true) {
@@ -41,20 +40,19 @@ class MultiLayerNN(val layers: List[ANNLayer],
     if (boolInitWeight) initWeightMatrix
   }
 
-  
-  def train(strategy:TrainStrategy= TrainByEpoch(Data.DEFAULT_TRAIN_EPOCHS)){
+  def train(strategy: TrainStrategy = TrainByEpoch(Data.DEFAULT_TRAIN_EPOCHS)) {
     strategy match {
       case TrainByEpoch(numEpoch) =>
-        (0 until numEpoch).foreach{
+        (0 until numEpoch).foreach {
           loop =>
             println(s"Epoch: $loop")
-            
+
         }
-      case TrainByError(numErr) =>   
-        
+      case TrainByError(numErr) =>
+
     }
   }
-  
+
   private def initWeightMatrix { // Initialize with a Uniform Dist or Normal dist..??
     if (weightMatrices.size == 0) { //Weight Matrices not even created
       layers.foreach(x => weightMatrices += DenseMatrix.zeros[Double](x.numNeurons, x.numInp))
@@ -83,7 +81,9 @@ class MultiLayerNN(val layers: List[ANNLayer],
     }
     activationVect
   }
-
+  def predict(inp: DenseVector[Double]): DenseVector[Double] = {
+    null
+  }
   def computeSquaredError(target: List[Double], computedOut: List[Double]): Double = {
     (target.zip(computedOut).map(x => pow((x._1 - x._2), 2)).reduce(_ + _)) / 2 // blas densevector multiplication can also be used for memory efficient computation    
   }
@@ -101,7 +101,7 @@ class MultiLayerNN(val layers: List[ANNLayer],
   }
   def backPropagate {
     updateDeltaList() //Propagate and find the delta for all layers 
-    updateWt()  //Adjust the weight matrices
+    updateWt() //Adjust the weight matrices
     updateBias //Adjust the bias
   }
 
@@ -121,27 +121,25 @@ class MultiLayerNN(val layers: List[ANNLayer],
     if (layer.layerIdx - 1 == 0) return
     else updateDeltaList(layers(layer.layerIdx - 1))
   }
-  
-  
+
   @tailrec
   private def updateWt(layer: ANNLayer = layers.last) {
-    val weightMat  =     weightMatrices(layer.layerIdx) 
-    val newWeightArr = (for{
+    val weightMat = weightMatrices(layer.layerIdx)
+    val newWeightArr = (for {
       i <- 0 until weightMat.rows
       j <- 0 until weightMat.cols
-    } yield( weightMat(i,j) + (deltaVectorList(layer.layerIdx)(j)*learningRate * activatedInputList(layer.layerIdx-1)(j)))).toArray
-    weightMatrices(layer.layerIdx) =  new DenseMatrix(weightMat.rows,weightMat.cols,newWeightArr)
-    if(layer.layerIdx==0) return
-    else updateWt(layers(layer.layerIdx-1))
+    } yield (weightMat(i, j) + (deltaVectorList(layer.layerIdx)(j) * learningRate * activatedInputList(layer.layerIdx - 1)(j)))).toArray
+    weightMatrices(layer.layerIdx) = new DenseMatrix(weightMat.rows, weightMat.cols, newWeightArr)
+    if (layer.layerIdx == 0) return
+    else updateWt(layers(layer.layerIdx - 1))
   }
-  
-  
+
   private def updateBias {
-    (0 until layers.size).map{
+    (0 until layers.size).map {
       idx =>
-        deltaVectorList(idx).toArray.zipWithIndex.map{
+        deltaVectorList(idx).toArray.zipWithIndex.map {
           del =>
-            layers(idx).setBiasVal(del._2,del._1)
+            layers(idx).setBiasVal(del._2, del._1)
         }
     }
   }
