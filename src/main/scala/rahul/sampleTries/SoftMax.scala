@@ -29,8 +29,9 @@ class LabelPredict(val numInp:Int,val numOut:Int) {
 	      classProb(::,idx) += bias
 	      softmaxBatch(::,idx) += softmax(classProb(::,idx).toDenseVector)
 	  }
-	  val deltaOut = DenseVector.zeros[Double](numOut)   // represents y-P(Y|x)
 	  
+	  val deltaOut = DenseVector.zeros[Double](numOut)   // represents y-P(Y|x)
+	  val delMat = actBatchOut.map(_.toDouble) - classProb
 	  
 	  
       /*
