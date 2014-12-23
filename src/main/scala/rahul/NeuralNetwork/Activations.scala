@@ -22,7 +22,7 @@ object Activations {
 
 //2. Softmax / Multinomial Logistic Regression 
 class LabelPredict(val numInp: Int, val numOut: Int) {
-  val weightMatrix = DenseMatrix.zeros[Double](numOut, numInp)
+  private val weightMatrix = DenseMatrix.zeros[Double](numOut, numInp)
 
   val bias = DenseVector.zeros[Double](numOut)
   private var learningRate = 0.1
@@ -30,7 +30,7 @@ class LabelPredict(val numInp: Int, val numOut: Int) {
   def setLearningRate(lr: Double) {
     learningRate = lr
   }
-
+  def getWeight:DenseMatrix[Double] = weightMatrix
   def softmax(classSet: DenseVector[Double]) = {
     val maxVal = classSet.max
     val expMap = classSet.map(curVal => exp(curVal - maxVal))
@@ -84,4 +84,11 @@ class LabelPredict(val numInp: Int, val numOut: Int) {
     softmax((weightMatrix * x) + bias)
   }
 
+  def predict(x:DenseMatrix[Double]):DenseMatrix[Double]={
+    val weightedVals = weightMatrix * x
+    for(i <- 0 until weightedVals.cols){
+      weightedVals(::,i) += bias
+    }
+    weightedVals
+  }
 }
