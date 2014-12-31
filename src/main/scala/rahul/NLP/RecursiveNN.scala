@@ -10,6 +10,7 @@ import breeze.linalg.softmax
 import rahul.NeuralNetwork.MultiLayerNN
 import rahul.NeuralNetwork.Network
 import rahul.NeuralNetwork.LabelPredict
+import rahul.NeuralNetwork.Activations
 
 class RecursiveNNDemo(
   val wVec: List[(String, List[Double])], // reference word to vec 
@@ -39,9 +40,14 @@ class RecursiveNNDemo(
    * @param truthTreeLookUp Map that contains tree node and it's corresponding labels
    * 
    */
-  def backPropagate(root: Tree, nn: MultiLayerNN, truthTreeLookUp: Map[Tree, String]) = {
+  def backPropagate(tree: Tree, nn: MultiLayerNN, truthTreeLookUp: Map[Tree, String],neuralNet:Network,softmaxLayer:LabelPredict,parentLabel:DenseVector[Double],parentTargetLabel:DenseVector[Double]) = {
 
+    
+    
     // 1. Backpropagate softmax error(label error)
+       //1.a  deltaP = (WLabel.t * (labelP-targetP) ):* f'(p)
+       val deltaP = (softmaxLayer.getWeight.t *((parentLabel -parentTargetLabel).toDenseMatrix)) :* (tree.value.toDenseMatrix.map(Activations.derivTanh(_)))
+       
     // 2. Add error to RNN error
     // 3. Backpropagate through structure
   }
