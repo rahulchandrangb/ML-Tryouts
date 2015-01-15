@@ -15,7 +15,6 @@ import rahul.NeuralNetwork.Activations
 class RecursiveNNDemo(
   val wVec: List[(String, List[Double])], // reference word to vec 
   val learningRate: Double, //specifies the learning rate
-  val windowSize: Int, //specifies the window size.
   val parentSelStrategy: PSelectStrategy = GreedySelect(),
   val neuralNet: Network) {
 
@@ -103,7 +102,7 @@ object Test extends App {
   println("Input map:\n===================\n" + inpMap.mkString("\n"))
   println("=================================")
   val initNN = MultiLayerNN.loadModelFromFile("path to model")
-  val rnnInst = new RecursiveNNDemo(inpMap, 0.1, 5, neuralNet = initNN)
+  val rnnInst = new RecursiveNNDemo(inpMap, 0.1, neuralNet = initNN)
   println("Trying to create first level parent output...")
   println("Umatrix:\n" + rnnInst.Umatrix.toString)
   println("\n\n")

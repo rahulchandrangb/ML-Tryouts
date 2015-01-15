@@ -92,3 +92,4 @@ class LabelPredict(val numInp: Int, val numOut: Int) {
     weightedVals
   }
 }
+
