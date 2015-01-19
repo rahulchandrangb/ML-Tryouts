@@ -92,6 +92,7 @@ class RBM(val visibleLayer: RBMLayer,
     //Adjust hidden bias
     
     //Adjust visible bias
+    
   }
 
 }
