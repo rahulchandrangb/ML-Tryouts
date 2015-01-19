@@ -20,9 +20,9 @@ object Activations {
 }
 
 
-//2. Softmax / Multinomial Logistic Regression 
+//2. Softmax 
 class LabelPredict(val numInp: Int, val numOut: Int) {
-  private val weightMatrix = DenseMatrix.zeros[Double](numOut, numInp)
+  val weightMatrix = DenseMatrix.zeros[Double](numOut, numInp)
 
   val bias = DenseVector.zeros[Double](numOut)
   private var learningRate = 0.1
@@ -30,7 +30,7 @@ class LabelPredict(val numInp: Int, val numOut: Int) {
   def setLearningRate(lr: Double) {
     learningRate = lr
   }
-  def getWeight:DenseMatrix[Double] = weightMatrix
+  
   def softmax(classSet: DenseVector[Double]) = {
     val maxVal = classSet.max
     val expMap = classSet.map(curVal => exp(curVal - maxVal))
@@ -38,7 +38,7 @@ class LabelPredict(val numInp: Int, val numOut: Int) {
     expMap.map(_ / sigmaExp)
   }
   // Batch train method. Maybe we need serial method also.
-  def train(inpBatch: DenseMatrix[Double], actBatchOut: DenseMatrix[Int], trainSampleSize: Int) {
+  def trainBatch(inpBatch: DenseMatrix[Double], actBatchOut: DenseMatrix[Int], trainSampleSize: Int) {
     /* 
 	   * This method updates weights and bias based on the training set.The method uses batch updates.
 	   * Note: inpBatch  and  actBatchOut contains each x(i) in the columns, as breeze file reading is column major
@@ -76,6 +76,10 @@ class LabelPredict(val numInp: Int, val numOut: Int) {
       idx =>
         bias += delMat(::, idx).toDenseVector * (learningRate / trainSampleSize)
     }
+  }
+  
+  def train(input:DenseVector[Double],output:DenseVector[Double],trainSampleSize:Int) {
+    
   }
   /*
    * Predict the output, given input

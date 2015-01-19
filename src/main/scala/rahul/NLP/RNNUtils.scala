@@ -3,11 +3,12 @@ package rahul.NLP
 import rahul.NLP.datastructs.Tree
 import breeze.linalg.DenseMatrix
 import breeze.linalg.DenseVector
+import rahul.NeuralNetwork.LabelPredict
 
 //delta p
 class Node(val leftChild: Node,
   val label: String,
-  val labelVec:DenseVector[Double],
+  val labelVec: DenseVector[Double],
   val name: String,
   val fectureVector: DenseVector[Double],
   val rightChild: Node,
@@ -85,33 +86,44 @@ WRB Wh­adverb​
       classVec(labelMap.size - x._2 - 1) = 1.0 //Class map in reverse
       (id, (desc, classVec))
   }.toMap
-  
+
 }
 
 object RNNUtils {
 
   //1.Derivative of cost function w.r.t weights
 
-  def calcBTSLabelError(n: Node, wLabel: DenseMatrix[Double],wANN:DenseMatrix[Double],derFunc: Double => Double, labelP: DenseVector[Double], targetP: DenseVector[Double], delC:Option[(DenseVector[Double])]=None, delW:List[DenseMatrix[Double]]) = {
+  def calcBTSLabelError(n: Node,softmax:LabelPredict,
+      trainSampleSize:Int,
+      wANN: DenseMatrix[Double], 
+      derFunc: Double => Double, 
+      labelP: DenseVector[Double], 
+      targetP: DenseVector[Double], 
+      delC: Option[(DenseVector[Double])] = None, 
+      delW: List[DenseMatrix[Double]]): List[DenseMatrix[Double]] = {
     //1. Calculate delta p
-    val deltaP = (wLabel.t * ((labelP - targetP).toDenseMatrix)) :* (n.fectureVector.map(derFunc(_)).toDenseMatrix)   
+    val wLabel = softmax.weightMatrix
+    
+    val deltaP = (wLabel.t * ((labelP - targetP).toDenseMatrix)) :* (n.fectureVector.map(derFunc(_)).toDenseMatrix)
     val deltot = delC match {
-      case Some(vec:DenseVector[Double]) =>
-      	   deltaP + vec.toDenseMatrix
-        
+      case Some(vec: DenseVector[Double]) =>
+        deltaP + vec.toDenseMatrix
       case None =>
-           deltaP
+        deltaP
     }
-    
-    if(n.isLeaf){
+
+    if (n.isLeaf) {
+      //Train Wlabel
+      softmax.train(n.fectureVector, targetP, trainSampleSize)
+      //Return delW
       
+      return delW
+    } else {
+      val c1c2Comb = new DenseVector((n.leftChild.fectureVector.toArray ++ n.rightChild.fectureVector.toArray))
+      val deltaPDown = (wANN.t * deltaP) :* (c1c2Comb.map(derFunc(_)).toDenseMatrix)
+      val delWeight = deltot * c1c2Comb.toDenseMatrix.t
     }
-    
-    val c1c2Comb = new DenseVector((n.leftChild.fectureVector.toArray ++ n.rightChild.fectureVector.toArray))
-    val deltaPDown = (wANN.t * deltaP) :* (c1c2Comb.map(derFunc(_)).toDenseMatrix)
-    val delWeight = deltaP * c1c2Comb.toDenseMatrix.t
-    
-    
+
   }
 
 }
