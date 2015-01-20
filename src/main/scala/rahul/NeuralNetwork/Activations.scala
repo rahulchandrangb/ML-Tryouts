@@ -79,7 +79,7 @@ class LabelPredict(val numInp: Int, val numOut: Int) {
   }
   
   def train(input:DenseVector[Double],output:DenseVector[Double],trainSampleSize:Int) {
-    
+     
   }
   /*
    * Predict the output, given input

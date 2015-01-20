@@ -1,8 +1,7 @@
 package rahul.NLP
 
 import rahul.NLP.datastructs.Tree
-import breeze.linalg.DenseMatrix
-import breeze.linalg.DenseVector
+import breeze.linalg.{DenseMatrix,DenseVector}
 import rahul.NeuralNetwork.LabelPredict
 
 //delta p
@@ -93,17 +92,18 @@ object RNNUtils {
 
   //1.Derivative of cost function w.r.t weights
 
-  def calcBTSLabelError(n: Node,softmax:LabelPredict,
-      trainSampleSize:Int,
+  def calcBTSLabelError(n: Node,
+      wLabel:DenseMatrix[Double],
       wANN: DenseMatrix[Double], 
       derFunc: Double => Double, 
-      labelP: DenseVector[Double], 
-      targetP: DenseVector[Double], 
       delC: Option[(DenseVector[Double])] = None, 
-      delW: List[DenseMatrix[Double]]): List[DenseMatrix[Double]] = {
+      delW: List[DenseMatrix[Double]] = List(),
+      delWLabel:List[DenseMatrix[Double]]=List()): (List[DenseMatrix[Double]],List[DenseMatrix[Double]]) = {
     //1. Calculate delta p
-    val wLabel = softmax.weightMatrix
     
+    val labelP = n.labelVec
+    val targetP = RNNConsts.labelMapWithVec(n.label)._2
+    val deltaWLabel = (targetP-labelP) * n.fectureVector.toDenseMatrix.t
     val deltaP = (wLabel.t * ((labelP - targetP).toDenseMatrix)) :* (n.fectureVector.map(derFunc(_)).toDenseMatrix)
     val deltot = delC match {
       case Some(vec: DenseVector[Double]) =>
@@ -113,17 +113,17 @@ object RNNUtils {
     }
 
     if (n.isLeaf) {
-      //Train Wlabel
-      softmax.train(n.fectureVector, targetP, trainSampleSize)
-      //Return delW
-      
-      return delW
+      (delW,delWLabel :+ deltaWLabel)
     } else {
       val c1c2Comb = new DenseVector((n.leftChild.fectureVector.toArray ++ n.rightChild.fectureVector.toArray))
       val deltaPDown = (wANN.t * deltaP) :* (c1c2Comb.map(derFunc(_)).toDenseMatrix)
+      val (deltaC1Data,deltaC2Data) = deltaPDown.data.splitAt(deltaPDown.data.size/2) 
+      val delC1Down = new DenseVector(deltaC1Data)
+      val delC2Down = new DenseVector(deltaC2Data)      
       val delWeight = deltot * c1c2Comb.toDenseMatrix.t
+      val (newDelWeights,newDelWLabels) = calcBTSLabelError(n.leftChild,wLabel,wANN,derFunc,Some(delC1Down),delW :+ delWeight,delWLabel :+ deltaWLabel)
+      calcBTSLabelError(n.rightChild,wLabel,wANN,derFunc,Some(delC2Down),newDelWeights,newDelWLabels)
     }
-
   }
 
 }
