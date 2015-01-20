@@ -90,15 +90,19 @@ WRB Wh­adverb​
 
 object RNNUtils {
 
-  //1.Derivative of cost function w.r.t weights
-
+  /*
+   * Calculates Back Propagation Through Structure -> Label Prediction deltas.
+   * 
+   * Output : (List(delta W), List(deltaWLabel))
+   */
+  
   def calcBTSLabelError(n: Node,
       wLabel:DenseMatrix[Double],
       wANN: DenseMatrix[Double], 
       derFunc: Double => Double, 
       delC: Option[(DenseVector[Double])] = None, 
       delW: List[DenseMatrix[Double]] = List(),
-      delWLabel:List[DenseMatrix[Double]]=List()): (List[DenseMatrix[Double]],List[DenseMatrix[Double]]) = {
+      delWLabel:List[DenseMatrix[Double]]=List()): (List[DenseMatrix[Double]],List[DenseMatrix[Double]]) = { 
     //1. Calculate delta p
     
     val labelP = n.labelVec
