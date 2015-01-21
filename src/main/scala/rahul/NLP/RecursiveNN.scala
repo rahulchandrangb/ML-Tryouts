@@ -45,7 +45,7 @@ class RecursiveNNDemo(
     
     // 1. Backpropagate softmax error(label error)
        //1.a  deltaP = (WLabel.t * (labelP-targetP) ):* f'(p)
-       val deltaP = (softmaxLayer.getWeight.t *((parentLabel -parentTargetLabel).toDenseMatrix)) :* (tree.value.toDenseMatrix.map(Activations.derivTanh(_)))
+      // val deltaP = (softmaxLayer.getWeight.t *((parentLabel -parentTargetLabel).toDenseMatrix)) :* (tree.value.toDenseMatrix.map(Activations.derivTanh(_)))
        
     // 2. Add error to RNN error
     // 3. Backpropagate through structure
@@ -90,7 +90,7 @@ object RecursiveNNDemo {
     val numOuts = actualOutPut.rows
     val numInps = truthtableInp.rows
     val softmaxLayer = new LabelPredict(numInps, numOuts)
-    softmaxLayer.train(truthtableInp, actualOutPut, truthtableInp.rows)
+    //softmaxLayer.train(truthtableInp, actualOutPut, truthtableInp.rows)
     softmaxLayer
   }
 }
