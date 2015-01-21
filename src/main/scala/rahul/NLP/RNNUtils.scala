@@ -120,10 +120,9 @@ object RNNUtils {
       (delW,delWLabel :+ deltaWLabel)
     } else {
       val c1c2Comb = new DenseVector((n.leftChild.fectureVector.toArray ++ n.rightChild.fectureVector.toArray))
-      val deltaPDown = (wANN.t * deltaP) :* (c1c2Comb.map(derFunc(_)).toDenseMatrix)
-      val (deltaC1Data,deltaC2Data) = deltaPDown.data.splitAt(deltaPDown.data.size/2) 
-      val delC1Down = new DenseVector(deltaC1Data)
-      val delC2Down = new DenseVector(deltaC2Data)      
+      val deltaPDown = (wANN.t * deltot) :* (c1c2Comb.map(derFunc(_)).toDenseMatrix)
+      val (deltaC1Data,deltaC2Data) = deltaPDown.data.splitAt(deltaPDown.data.size/2)
+      val (delC1Down,delC2Down) = (new DenseVector(deltaC1Data),new DenseVector(deltaC2Data))      
       val delWeight = deltot * c1c2Comb.toDenseMatrix.t
       val (newDelWeights,newDelWLabels) = calcBTSLabelError(n.leftChild,wLabel,wANN,derFunc,Some(delC1Down),delW :+ delWeight,delWLabel :+ deltaWLabel)
       calcBTSLabelError(n.rightChild,wLabel,wANN,derFunc,Some(delC2Down),newDelWeights,newDelWLabels)

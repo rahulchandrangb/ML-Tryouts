@@ -34,7 +34,7 @@ class RBM(val visibleLayer: RBMLayer,
 
   private def calcActivationEnergy(input: DenseVector[Double], weight: DenseMatrix[Double], boolVtoH: Boolean = true) = {
     if (boolVtoH) (weight * input.toDenseMatrix.t).toDenseVector
-    else (weight.t * input.toDenseMatrix.t).toDenseVector
+    else (weight.t * input.toDenseMatrix.t).toDenseVector //Negetive direction..
   }
   def gibbsSampling(sampleInp: DenseVector[Double]) = {
     val (actVis, sampVis) = computeActivAndSample(visibleLayer, sampleInp)
@@ -76,22 +76,34 @@ class RBM(val visibleLayer: RBMLayer,
     learningRate: Double,
     numIterations: Int = 2,
     numHidden: Int = this.numHidden,
-    numVisible: Int = this.numVisible) {
+    numVisible: Int = this.numVisible,
+    numTrainSamples: Int) {  // This is an approximate GD using mcmc 
 
-    //Calculate the first positive phase..
+    // 1. Calculate the first positive phase..
     val (posHidActVec, posHidSample) = computeActivAndSample(hiddenLayer, input) // This is first positive phase
 
-    //Gibb's sampling for numIterations..
-    val (hiddenSample,hiddenSigmoid,visibleSample,visibleSigmoid) = Iterator.iterate(posHidSample, posHidActVec, DenseVector.zeros[Double](numHidden), DenseVector.zeros[Double](numHidden)) {
+    // 2. Gibb's sampling for numIterations..
+    val (hiddenSample, hiddenSigmoid, visibleSample, visibleSigmoid) = Iterator.iterate(posHidSample, posHidActVec, DenseVector.zeros[Double](numHidden), DenseVector.zeros[Double](numHidden)) {
       case (hidSample, hidSigmoid, visSample, visSigmoid) =>
-      	gibbsSampling(hidSample)
+        gibbsSampling(hidSample)
     }.drop(numIterations - 1).next
 
-    //Adjust weights
-    
-    //Adjust hidden bias
-    
-    //Adjust visible bias
+    // 3. Adjust weights
+    for {
+      i <- 0 until numHidden
+      j <- 0 until numVisible
+    } {
+      weight(i, j) += learningRate * (posHidActVec(i) * input(j) - hiddenSigmoid(i) * visibleSample(j)) / numTrainSamples
+    }
+    // 4. Adjust hidden bias
+    (0 until numHidden).foreach { i =>
+      hbias(i) = learningRate * (posHidSample(i) - hiddenSigmoid(i)) / numTrainSamples
+    }
+
+    // 5. Adjust visible bias
+    (0 until numVisible).foreach { i =>
+      vbias(i) = learningRate * (input(i) - visibleSample(i)) / numTrainSamples
+    }
     
   }
 
