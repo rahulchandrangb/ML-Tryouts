@@ -50,9 +50,11 @@ class RBM(val visibleLayer: RBMLayer,
         val sampleVec = ListBuffer[Int]()
         val activationStore = DenseVector.zeros[Double](destLayer.numNeurons)
         for (i <- 0 until destLayer.numNeurons) {
+          println("I:" + i)
           val newWeight = weight.t
-          val sigmaPlusBias = (input.toDenseMatrix.t * newWeight(i, ::)).apply(0,0) + vbias(i)
-          
+          println(s"input $input newweight $newWeight")
+          val sigmaPlusBias = (input.toDenseMatrix.t * newWeight(i, ::)).apply(0, 0) + vbias(i)
+
           println(s"sigmabias $sigmaPlusBias")
           val activatedOut = Activations.sigmoid(sigmaPlusBias)
           activationStore(i) = activatedOut
@@ -64,11 +66,11 @@ class RBM(val visibleLayer: RBMLayer,
         val sampleVec = ListBuffer[Int]()
         val activationStore = DenseVector.zeros[Double](destLayer.numNeurons)
         for (i <- 0 until destLayer.numNeurons) {
-          //println(i)
-          //println("Input:"+input)
-          //println("weight"+weight(i, ::).t)
-          val sigma = (input.toDenseMatrix.t * weight.t(i, ::))   //
-          val sigmaPlusBias = sigma(0,0)+ hbias(i)
+          println(i)
+          println("Input:"+input)
+          println("weight"+weight(i, ::).t)
+          val sigma = (input.toDenseMatrix.t * weight.t(i, ::))
+          val sigmaPlusBias = sigma(0, 0) + hbias(i)
           println(sigmaPlusBias)
           val activatedOut = Activations.sigmoid(sigmaPlusBias)
           activationStore(i) = activatedOut
@@ -92,34 +94,30 @@ class RBM(val visibleLayer: RBMLayer,
     // 1. Calculate the first positive phase..
     val (posHidActVec, posHidSample) = computeActivAndSample(hiddenLayer, input) // This is first positive phase
 
+    println(s"Positive phase: posHidActVec $posHidActVec posHidSample $posHidSample")
     // 2. Gibb's sampling for numIterations..
     println("Doing gibb's sampling....")
-    
-    
+
     val (hiddenSample, hiddenSigmoid, visibleSample, visibleSigmoid) = Iterator.iterate(posHidSample, posHidActVec, DenseVector.zeros[Double](numHidden), DenseVector.zeros[Double](numHidden)) {
       case (hidSample, hidSigmoid, visSample, visSigmoid) =>
         gibbsSampling(hidSample)
     }.drop(numIterations - 1).next
 
-    
     println("Adjusting weights...")
     println(numHidden)
     // 3. Adjust weights
     println("Dumping vars..")
-    
+
     println(s"posHidActVec $posHidActVec , input $input hiddenSigmoid $hiddenSigmoid visibleSample $visibleSample")
-    
-    
+
     for {
       i <- 0 until numHidden
       j <- 0 until numVisible
-    }
-     {
+    } {
       //weight(i,j) += 
       learningRate * (posHidActVec(i) * input(j) - hiddenSigmoid(i) * visibleSample(j)) / numTrainSamples
     }
-    
-    
+
     // 4. Adjust hidden bias
     (0 until numHidden).foreach { i =>
       hbias(i) = learningRate * (posHidSample(i) - hiddenSigmoid(i)) / numTrainSamples
@@ -148,14 +146,14 @@ object RBM {
     val numIters = 1
 
     val trainNum: Int = 3;
-    
+
     val numVis: Int = 6
     val numHid: Int = 3
 
     val visLayer = RBMLayer(numVis, Visible(), DenseVector.zeros(numVis))
     val hidLayer = RBMLayer(numHid, Hidden(), DenseVector.zeros(numHid))
 
-    val trainInp:List[DenseVector[Double]] = List(
+    val trainInp: List[DenseVector[Double]] = List(
       new DenseVector(Array(1, 1, 1, 0, 0, 0)),
       new DenseVector(Array(1, 0, 1, 0, 0, 0)),
       new DenseVector(Array(1, 1, 1, 0, 0, 0)),
@@ -163,24 +161,18 @@ object RBM {
       new DenseVector(Array(0, 0, 1, 0, 1, 0)),
       new DenseVector(Array(0, 0, 1, 1, 1, 0)))
 
-      
-      
-      
     val rbm = new RBM(visLayer, hidLayer)
     println("Initializing weights..")
     rbm.initWeights
     println(rbm.weight)
-   
-    
+
     println("Training .....")
-    trainInp.foreach(rbm.contrastiveDiv(_, learningRate,trainNum))
-    
-    
+    trainInp.foreach(rbm.contrastiveDiv(_, learningRate, trainNum))
+
     println("Testing")
-    val testV = new DenseVector(Array(1.0, 1, 0, 0, 0, 0)) 
-    println("Test input:"+testV.toString)
-    println("Reconstructed Input:"+rbm.reconstructInput(testV))
-    
+    val testV = new DenseVector(Array(1.0, 1, 0, 0, 0, 0))
+    println("Test input:" + testV.toString)
+    println("Reconstructed Input:" + rbm.reconstructInput(testV))
 
   }
 
