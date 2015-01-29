@@ -22,30 +22,35 @@ class NaiveBayesClassifier {
     catCnt += (category -> (catCnt.getOrElse(category, 0) + 1))
   }
 
-  def classify(text: String) = {
+  def classify(text: String): String = {
     val clasTextTokenizer = new StringTokenizer(text).filter(x => (NaiveBayesClassifier.stopWords.contains(x)))
-    val totalCatCnt = catCnt.foldLeft(0)(_+_._2).toDouble
-    val avgProb:Double = 1/catCnt.size
-    
-    catCnt map {
+    val totalCatCnt = catCnt.foldLeft(0)(_ + _._2).toDouble
+    val avgProb: Double = 1 / catCnt.size
+    val w = 1
+    val probByCatMap = catCnt map {
       catCntSet =>
         val cat = catCntSet._1
         val catCount = catCntSet._2
         //1. Get  P(Y)
-        val catProb = catCount/totalCatCnt  
-        
-        //2. get P(X|Y)
-        val pXgivenYList = clasTextTokenizer map {
+        val catProb = catCount / totalCatCnt
+        //2. get P(X(i)|Y(i))/P(X(i))
+        val pXigivenYiList = clasTextTokenizer map {
           t =>
             val token = t.asInstanceOf[String]
-            val wProb = catWordCnt.getOrElse((cat,token), 0)/catCount
-            
+            // Calculate the token coming in that category.
+            val wProb: Double = catWordCnt.getOrElse((cat, token), 0) / catCount
+            // Calculate the total num of words in the all classifiers
+            val total = catWordCnt.filter(_._1._2 == token).map(_._2).sum
+            (avgProb * w + total * wProb) / (w + total)
         }
-        
+        // Pi[P(X(i)|Y(i))/P(X(i))]
+        val wholeTextProb = pXigivenYiList.foldLeft(1.0)(_ * _)
+        // Calculate P(Y|X) using Bayes Rule
+        val catTextProb = catProb * wholeTextProb
+        (cat, catTextProb)
     }
-
+    probByCatMap.maxBy(_._2)._1
   }
-
 }
 
 object NaiveBayesClassifier {
