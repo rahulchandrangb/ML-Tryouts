@@ -25,7 +25,7 @@ class NaiveBayesClassifier {
   def classify(text: String): String = {
     val clasTextTokenizer = new StringTokenizer(text).filter(x => (NaiveBayesClassifier.stopWords.contains(x)))
     val totalCatCnt = catCnt.foldLeft(0)(_ + _._2).toDouble
-    val avgProb: Double = 1 / catCnt.size
+    val avgProb: Double = 0.5 // 1 / catCnt.size
     val w = 1
     val probByCatMap = catCnt map {
       catCntSet =>
@@ -33,6 +33,7 @@ class NaiveBayesClassifier {
         val catCount = catCntSet._2
         //1. Get  P(Y)
         val catProb = catCount / totalCatCnt
+        
         //2. get P(X(i)|Y(i))/P(X(i))
         val pXigivenYiList = clasTextTokenizer map {
           t =>
@@ -49,6 +50,7 @@ class NaiveBayesClassifier {
         val catTextProb = catProb * wholeTextProb
         (cat, catTextProb)
     }
+    println(probByCatMap)
     probByCatMap.maxBy(_._2)._1
   }
 }
