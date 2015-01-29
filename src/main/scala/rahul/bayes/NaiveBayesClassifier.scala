@@ -13,17 +13,21 @@ class NaiveBayesClassifier {
 
   def train(category: String, text: String) {
 
-    val strTokens = new StringTokenizer(text).filter(x => (NaiveBayesClassifier.stopWords.contains(x)))
+    val strTokens = new StringTokenizer(text).toList.filter(x => (!NaiveBayesClassifier.stopWords.contains(x))).map(_.toString.replaceAll("\\W+", ""))
     strTokens map {
       curToken =>
+
+        println(curToken.asInstanceOf[String])
         catWordCnt += ((category, curToken.asInstanceOf[String]) ->
           (catWordCnt.getOrElse((category, curToken.asInstanceOf[String]), 0) + 1))
     }
     catCnt += (category -> (catCnt.getOrElse(category, 0) + 1))
+    println(catCnt)
+    println(catWordCnt)
   }
 
   def classify(text: String): String = {
-    val clasTextTokenizer = new StringTokenizer(text).filter(x => (NaiveBayesClassifier.stopWords.contains(x)))
+    val clasTextTokenizer = new StringTokenizer(text).toList.filter(x => (!NaiveBayesClassifier.stopWords.contains(x))).map(_.toString.replaceAll("\\W+", ""))
     val totalCatCnt = catCnt.foldLeft(0)(_ + _._2).toDouble
     val avgProb: Double = 0.5 // 1 / catCnt.size
     val w = 1
@@ -33,7 +37,7 @@ class NaiveBayesClassifier {
         val catCount = catCntSet._2
         //1. Get  P(Y)
         val catProb = catCount / totalCatCnt
-        
+
         //2. get P(X(i)|Y(i))/P(X(i))
         val pXigivenYiList = clasTextTokenizer map {
           t =>
@@ -55,7 +59,7 @@ class NaiveBayesClassifier {
   }
 }
 
-object NaiveBayesClassifier {
+object NaiveBayesClassifier extends App {
   val stopWords = Array[String]("a", "about", "above", "across", "after", "afterwards",
     "again", "against", "all", "almost", "alone", "along",
     "already", "also", "although", "always", "am", "among",
@@ -110,4 +114,15 @@ object NaiveBayesClassifier {
     "with", "within", "without", "would", "yet", "you", "your", "yours",
     "yourself", "yourselves")
 
+  val classifier = new NaiveBayesClassifier
+  classifier.train("dog", "Dogs are awesome, cats too. I love my dog")
+  classifier.train("cat", "Cats are more preferred by software developers. I never could stand cats. I have a dog")
+  classifier.train("dog", "My dog's name is Willy. He likes to play with my wife's cat all day long. I love dogs")
+  classifier.train("cat", "Cats are difficult animals, unlike dogs, really annoying, I hate them all")
+  classifier.train("dog", "So which one should you choose? A dog, definitely.")
+  classifier.train("cat", "The favorite food for cats is bird meat, although mice are good, but birds are a delicacy")
+  classifier.train("dog", "A dog will eat anything, including birds or whatever meat")
+  classifier.train("cat", "My cat's favorite place to purr is on my keyboard")
+  classifier.train("dog", "My dog's favorite place to take a leak is the tree in front of our house")
+  println(classifier.classify("Cats."))
 }
