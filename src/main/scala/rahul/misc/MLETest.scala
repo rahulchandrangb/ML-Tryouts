@@ -1,7 +1,8 @@
 package rahul.misc
 import scala.math._
 import breeze.linalg._
-import breeze.plot._
+import breeze.plot.Figure
+import breeze.plot.plot
 
 object MLETest extends App {
   calculateByMLE(probDetect, 10, 4,true)
@@ -19,12 +20,13 @@ object MLETest extends App {
       val px = new DenseVector(probs.map(_._2).toArray)
       val py = new DenseVector(probs.map(_._1).toArray)
       p += plot(px,py)
+      val xxx = plot(px,py)
       p.xlabel = "p"
       p.ylabel = "P"
       p.title = "Maximum Likelihood probability estimation of H4T6"
       p.chart
-      p.xlim(0.0, 1.0)
-      p.ylim(0.0,0.3)
+      p.setXAxisDecimalTickUnits
+      p.setYAxisDecimalTickUnits
       f.saveas("/tmp/test.png")
     }
     println("Best Value By Maximum Likelihood estimation:" + probs.max)
