@@ -4,7 +4,7 @@ import breeze.linalg._
 import breeze.plot.Figure
 import breeze.plot.plot
 
-object MLETest extends App {
+object MLEMCTest extends App {
   calculateByMLE(probDetect, 10, 4,true)
 
   def calculateByMLE(f: (Double, Int, Int) => Double, n: Int, r: Int, plotFlag: Boolean = false) = {
@@ -23,11 +23,10 @@ object MLETest extends App {
       val xxx = plot(px,py)
       p.xlabel = "p"
       p.ylabel = "P"
-      p.title = "Maximum Likelihood probability estimation of H4T6"
-      p.chart
       p.setXAxisDecimalTickUnits
       p.setYAxisDecimalTickUnits
       f.saveas("/tmp/test.png")
+      
     }
     println("Best Value By Maximum Likelihood estimation:" + probs.max)
   }
