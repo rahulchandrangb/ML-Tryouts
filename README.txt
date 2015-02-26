@@ -5,4 +5,7 @@ Contains implementation of the following neural networks in scala:
 4) Recursive Neural Tensor Network
 
 Contains the following regular ML Algos in scala:
-1)Naive Bayes
+1) Naive Bayes
+2) Collaborative filtering
+3) PCA [Look in PyML repo]
+
