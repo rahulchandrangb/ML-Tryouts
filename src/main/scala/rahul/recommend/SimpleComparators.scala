@@ -1,6 +1,6 @@
 package rahul.recommend
 import scala.math._
-
+import breeze.linalg.DenseVector
 object PCCTest {
 
 }
@@ -40,7 +40,7 @@ class Recommenders {
     val pearsonCorCoeff = (xiYiSum - ((xiSum * yiSum) / n)) / pow((sumXiSqr - (sumXiWholeSquare / n)), 0.5) * pow((sumYiSqr - (sumYiWholeSquare / n)), 0.5)
     pearsonCorCoeff
   }
-  def recommendNearestNeighBourByPCC(curUser: (String, List[Double]), allUsers: Map[String, List[Double]]) = {
+  def recommendNearestNeighBourByPCC(curUser: (String, List[Double]), allUsers: Map[String, List[Double]]): (String, Double) = {
     println("Calculating nearest neighbour using Pearson Correlation Coefficient")
     //Note that pearson correlation co-efficient extends from 1 to -1 [more positive means more close]
     val pccList = allUsers.filter(!_._1.equals(curUser._1)) map {
@@ -48,11 +48,41 @@ class Recommenders {
         val pccVal = getPCCValue(curUser._2, dataList)
         (usr, pccVal)
     }
-    val bestNeighBour = pccList.foldLeft(("", -2.0)) {
+    val bestNeighbour = pccList.foldLeft(("", -2.0)) {
       (x, y) =>
         if (y._2 > x._2) y
         else x
     }
-    println(s"The best nearest neighbour is ${bestNeighBour._1} with pearson correlation coefficient as ${bestNeighBour._2}")
+    println(s"The best nearest neighbour is ${bestNeighbour._1} with pearson correlation coefficient as ${bestNeighbour._2}")
+    bestNeighbour
   }
+
+  def cosineSimiliarity(dataX: List[Double], dataY: List[Double]) = {
+    /*
+     *              X.Y
+     *  cs =  ---------------
+     *         ||X|| x ||Y||
+     * 
+     */
+    val xVec = new DenseVector(dataX.toArray)
+    val yVec = new DenseVector(dataY.toArray)
+
+    val cosineSimiliarity = (xVec dot yVec) / pow(xVec.map(pow(_, 2)).sum, 0.5) * pow(yVec.map(pow(_, 2)).sum, 0.5)
+    cosineSimiliarity
+  }
+
+  def recommendNNByCosineSim(curUser: (String, List[Double]), allUsers: Map[String, List[Double]]): (String, Double) = {
+    val cosSimList = allUsers.filter(!_._1.equals(curUser._1)) map {
+      case (usr: String, dataList: List[Double]) =>
+        val cosVal = cosineSimiliarity(curUser._2, dataList)
+        (usr, cosVal)
+    }
+    val similiarNeighbour = cosSimList.foldLeft(("", -2.0)) {
+      (x, y) =>
+        if (y._2 > x._2) y
+        else x
+    }
+    similiarNeighbour
+  }
+  
 }
