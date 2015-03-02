@@ -6,6 +6,5 @@ Contains implementation of the following neural networks in scala:
 
 Contains the following regular ML Algos in scala:
 1) Naive Bayes
-2) Collaborative filtering
+2) Collaborative filtering/Recommenders [Pearson, Minkowski,Cosine,K-nearest negihbour]
 3) PCA [Look in PyML repo]
-
