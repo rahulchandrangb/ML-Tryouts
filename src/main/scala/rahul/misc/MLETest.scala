@@ -5,7 +5,7 @@ import breeze.plot.Figure
 import breeze.plot.plot
 
 object MLEMCTest extends App {
-  calculateByMLE(probDetect, 10, 4,true)
+  calculateByMLE(probDetect, 10, 4,true) //Binomial prob  dist
 
   def calculateByMLE(f: (Double, Int, Int) => Double, n: Int, r: Int, plotFlag: Boolean = false) = {
     val probs = for {
