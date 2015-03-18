@@ -11,3 +11,14 @@ Contains the following regular ML Algos in scala:
 3) PCA [Look in PyML repo]
 4) Maximum Likelihood Estimation
 5) Monte Carlo
+
+Contains the following PGM models/Algos in scala
+1) Bayesian/Markov Networks
+
+In Progress/To do
+1) Contrastive divergence
+2) Cluster Graph/ Clique Tree algos
+3) Variable Elimination
+4) Variational Inference - Mean field inf
+5) Loopy BP
+6) MCMC - Gibbs, Metropolis-hastings
