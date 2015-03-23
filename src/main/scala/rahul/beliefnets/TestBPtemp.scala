@@ -1,6 +1,6 @@
 package rahul.beliefnets
 
-trait MessageDirection
+sealed trait MessageDirection
 case class ForwardMessage extends MessageDirection
 case class ReverseMessage extends MessageDirection 
 
