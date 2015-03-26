@@ -9,6 +9,6 @@ object SampleVal {
      "OTH" -> 4
   )
   
-  
+  val NBCORPUSLOC = "/home/rahul/rahul/rahul_experiments/NBCorpus"
   
 }

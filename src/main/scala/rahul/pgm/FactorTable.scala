@@ -15,9 +15,7 @@ case class FactorTable(rows: Int, cols: Int,
   def factorMarginalize(shouldNormalize: Boolean = false) = {
 
   }
-  def factorReduce(filterFactorList: List[(String, String)]) = {
 
-  }
 }
 
 object FactorTable {
