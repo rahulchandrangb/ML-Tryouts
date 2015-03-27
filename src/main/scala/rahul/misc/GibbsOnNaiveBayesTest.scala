@@ -14,10 +14,7 @@ object GNBConsts {
   // Hyper params of beta prior ..Here we give uniform distrib or equally likely
   val alpha = 1.0
   val beta = 1.0
-  
-  //  
-  
-  
+  //
 }
 
 
