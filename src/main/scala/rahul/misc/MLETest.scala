@@ -4,6 +4,7 @@ import breeze.linalg._
 import breeze.plot.Figure
 import breeze.plot.plot
 import breeze.stats.distributions.Beta
+import breeze.stats.distributions.Gamma
 
 object MLEMCTest extends App {
   calculateByMLE(probDetect, 10, 4, true) //Binomial prob  dist
@@ -52,16 +53,30 @@ object MLEMCTest extends App {
 object BetaPlot extends App {
   val f = Figure("MLE")
   val p = f.subplot(0)
-  val x = linspace(0.1, 0.9)
-  val alpha = 0.2
-  val beta = 0.8
+  val x = linspace(0.1,0.9)
+  val alpha = 0.5
+  val beta = 1.0
   val betaDist = new Beta(alpha, beta)
+  val beta2 = new Gamma(1.0,beta)
+  val beta3 = new Gamma(0.3,beta)
+  val beta4  = new Gamma(2.0,beta)
+  
   val betaVals = x.map(betaDist(_))
+  val betaVals2 = x.map(beta2(_))
+  val betaVals3 = x.map(beta3(_))
+  val betaVals4 = x.map(beta4(_))
+  
   println(betaVals)
-  p += plot(x, betaVals)
+  p += plot( betaVals,x)
+  
+  p += plot(betaVals2,x)
+  p += plot(betaVals3,x)
+  p += plot(betaVals4,x)
+  
   p.xlabel = "x"
-  p.ylabel = "Beta(x,alpha=.2,beta=.35)"
+  
+  p.ylabel = s"Gamma(x,alpha= $alpha ,beta= $beta )"
   p.setXAxisDecimalTickUnits
   p.setYAxisDecimalTickUnits
-  f.saveas("/tmp/testBeta.png")
+  f.saveas("/tmp/testGamma.png")
 }

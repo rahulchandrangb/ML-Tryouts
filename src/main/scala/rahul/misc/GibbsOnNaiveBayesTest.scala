@@ -30,7 +30,7 @@ object GibbsOnNB {
 class GibbsOnNB(val corpusLoc:String,
     k:Int, //State space dimension
     priorPiAlpha:Double=GNBConsts.alpha, //Alpha for beta distrib prior
-    priorPiBeta:Double = GNBConsts.beta
+    priorPiBeta:Double = GNBConsts.beta 
 ) {
   
   
